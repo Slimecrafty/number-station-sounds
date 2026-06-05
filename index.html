@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Radio Transmitter</title>
+    <title>Radio Transmitter PRO</title>
     <style>
         body { font-family: 'Courier New', monospace; background-color: #0c0f0c; color: #ff3333; padding: 20px; text-align: center; }
         textarea { width: 90%; height: 120px; background-color: #120505; color: #ff3333; border: 1px solid #ff3333; font-size: 20px; padding: 10px; resize: vertical; }
@@ -10,13 +10,8 @@
         select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; }
         .status { margin-top: 15px; font-size: 14px; color: #aa6666; }
         .controls { margin-bottom: 20px; }
-        .repo-link { margin-top: 30px; margin-bottom: 15px; }
-        .repo-link a { color: #ff3333; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ff3333; }
-        
-        /* Styling für die Parameter-Erklärung */
+        .slider-box { margin: 20px 0; color: #aa6666; font-size: 14px; }
         .help-box { margin-top: 25px; text-align: left; display: inline-block; width: 90%; background-color: #120505; border: 1px dashed #ff3333; padding: 15px; color: #aa6666; font-size: 14px; }
-        .help-box ul { padding-left: 20px; margin: 5px 0 0 0; }
-        .help-box h3 { margin: 0 0 10px 0; font-size: 16px; color: #ff3333; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -28,7 +23,6 @@
             <option value="PL">Polski</option>
             <option value="UA">Українська</option>
         </select>
-        
         <select id="stationSelect" onchange="updateUI()">
             <option value="DE">G03</option>
             <option value="E">E06</option>
@@ -37,21 +31,19 @@
         </select>
     </div>
 
+    <div class="slider-box">
+        <label>Zahlengeschwindigkeit (Pause): </label>
+        <input type="range" id="speedSlider" min="50" max="1000" value="400">
+        <span id="speedVal">400ms</span>
+    </div>
+
     <h1 id="title">RADIO TRANSMITTER</h1>
-    
-    <textarea id="messageInput"></textarea>
-    <br>
+    <textarea id="messageInput"></textarea><br>
     <button id="btnStart" onclick="startTransmission()">START</button>
     <button id="btnStop" onclick="stopTransmission()">STOP</button>
-    <div class="status" id="statusField">System ready.</div>
+    <div class="status" id="statusField">System bereit.</div>
 
     <div class="help-box" id="helpField"></div>
-
-    <div class="repo-link">
-        <a href="https://github.com/Slimecrafty/number-station-sounds" target="_blank">
-           GitHub Repository
-        </a>
-    </div>
 
     <script>
         const defaults = {
@@ -62,43 +54,25 @@
         };
 
         const translations = {
-            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)" },
-            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)" },
-            "PL": { title: "NADAJNIK RADIOWY", start: "URUCHOM TRANSMISJĘ", stop: "STOP", status: "System gotowy.", g03Label: "G03 (Niemiecki)", e06Label: "E06 (Angielski Głos)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Słowiański)" },
-            "UA": { title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ ПЕРЕДАЧУ", stop: "СТОП", status: "Система готова.", g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)" }
+            "DE": { title: "RADIO TRANSMITTER", start: "START", stop: "STOPP", status: "System bereit.", g03: "G03 (Deutsch)", e06: "E06 (English Man)", e03: "E03 (Lincolnshire Poacher)", s11a: "S11a (Slawisch)" },
+            "EN": { title: "RADIO TRANSMITTER", start: "START", stop: "STOP", status: "System ready.", g03: "G03 (German)", e06: "E06 (English Man)", e03: "E03 (Lincolnshire Poacher)", s11a: "S11a (Slavic)" },
+            "PL": { title: "NADAJNIK RADIOWY", start: "URUCHOM", stop: "STOP", status: "System gotowy.", g03: "G03 (Niemiecki)", e06: "E06 (Angielski Głos)", e03: "E03 (Lincolnshire Poacher)", s11a: "S11a (Słowiański)" },
+            "UA": { title: "РАДІОПЕРЕДАВАЧ", start: "СТАРТ", stop: "СТОП", status: "Система готова.", g03: "G03 (Німецька)", e06: "E06 (Англійська)", e03: "E03 (Lincolnshire Poacher)", s11a: "S11a (Слов'янська)" }
         };
 
         const helpTexts = {
-            "DE": {
-                "DE": "<h3>Parameter für G03 (DE):</h3><ul><li><b>GONG</b> - <code>DE_GONG.mp3</code></li><li><b>ACHTUNG</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Zahlen (z.B. <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parameter für E06 (E):</h3><ul><li><b>0-9</b> - Nur Zahlen erlaubt (z.B. <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Parameter für E03 (EN):</h3><ul><li><b>MELODIE</b> - <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Zahlen (z.B. <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Parameter für S11a (R):</h3><ul><li><b>ACHTUNG</b> - <code>R_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - <code>R_TRENNUNG.mp3</code></li><li><b>ENDE</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Zahlen (z.B. <code>R_5.mp3</code>)</li></ul>"
-            },
-            "EN": {
-                "DE": "<h3>Parameters for G03 (DE):</h3><ul><li><b>GONG</b> - <code>DE_GONG.mp3</code></li><li><b>ATTENTION</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Numbers (e.g., <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parameters for E06 (E):</h3><ul><li><b>0-9</b> - Numbers only (Plays e.g., <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Parameters for E03 (EN):</h3><ul><li><b>MELODY</b> - <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Numbers (e.g., <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Parameters for S11a (R):</h3><ul><li><b>ATTENTION</b> - <code>R_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - <code>R_TRENNUNG.mp3</code></li><li><b>END</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Numbers (e.g., <code>R_5.mp3</code>)</li></ul>"
-            },
-            "PL": {
-                "DE": "<h3>Parametry dla G03 (DE):</h3><ul><li><b>GONG</b> - <code>DE_GONG.mp3</code></li><li><b>UWAGA</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARACJA</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Cyfry (np. <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parametry dla E06 (E):</h3><ul><li><b>0-9</b> - Tylko cyfry (np. <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Parametry dla E03 (EN):</h3><ul><li><b>MELODIA</b> - <code>EN_GONG.mp3</code></li><li><b>PAUZA</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Cyfry (np. <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Parametry dla S11a (R):</h3><ul><li><b>UWAGA</b> - <code>R_ACHTUNG.mp3</code></li><li><b>SEPARACJA</b> - <code>R_TRENNUNG.mp3</code></li><li><b>KONIEC</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Cyfry (np. <code>R_5.mp3</code>)</li></ul>"
-            },
-            "UA": {
-                "DE": "<h3>Параметри для G03 (DE):</h3><ul><li><b>ГОНГ</b> - <code>DE_GONG.mp3</code></li><li><b>УВАГА</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>РОЗДІЛ</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Цифри (наприклад, <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Параметри для E06 (E):</h3><ul><li><b>0-9</b> - Тільки цифри (наприклад, <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Параметри для E03 (EN):</h3><ul><li><b>МЕЛОДІЯ</b> - <code>EN_GONG.mp3</code></li><li><b>ПАУЗА</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Цифри (наприклад, <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Параметри для S11a (R):</h3><ul><li><b>УВАГА</b> - <code>R_ACHTUNG.mp3</code></li><li><b>РОЗДІЛ</b> - <code>R_TRENNUNG.mp3</code></li><li><b>КІНЕЦЬ</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Цифри (наприклад, <code>R_5.mp3</code>)</li></ul>"
-            }
+            "DE": { "DE": "<h3>G03 (DE):</h3><ul><li>GONG, ACHTUNG, TRENNUNG</li><li>Zahlen: 0-9</li></ul>", "E": "<h3>E06 (E):</h3><ul><li>Nur Zahlen: 0-9</li></ul>", "EN": "<h3>E03 (EN):</h3><ul><li>MELODIE, PAUSE</li><li>Zahlen: 0-9</li></ul>", "R": "<h3>S11a (R):</h3><ul><li>ACHTUNG, TRENNUNG, ENDE</li><li>Zahlen: 0-9</li></ul>" },
+            "EN": { "DE": "<h3>G03 (DE):</h3><ul><li>GONG, ATTENTION, SEPARATION</li><li>Numbers: 0-9</li></ul>", "E": "<h3>E06 (E):</h3><ul><li>Numbers only: 0-9</li></ul>", "EN": "<h3>E03 (EN):</h3><ul><li>MELODY, PAUSE</li><li>Numbers: 0-9</li></ul>", "R": "<h3>S11a (R):</h3><ul><li>ATTENTION, SEPARATION, END</li><li>Numbers: 0-9</li></ul>" },
+            "PL": { "DE": "<h3>G03 (DE):</h3><ul><li>GONG, UWAGA, SEPARACJA</li><li>Cyfry: 0-9</li></ul>", "E": "<h3>E06 (E):</h3><ul><li>Tylko cyfry: 0-9</li></ul>", "EN": "<h3>E03 (EN):</h3><ul><li>MELODIA, PAUZA</li><li>Cyfry: 0-9</li></ul>", "R": "<h3>S11a (R):</h3><ul><li>UWAGA, SEPARACJA, KONIEC</li><li>Cyfry: 0-9</li></ul>" },
+            "UA": { "DE": "<h3>G03 (DE):</h3><ul><li>ГОНГ, УВАГА, РОЗДІЛ</li><li>Цифри: 0-9</li></ul>", "E": "<h3>E06 (E):</h3><ul><li>Тільки цифри: 0-9</li></ul>", "EN": "<h3>E03 (EN):</h3><ul><li>МЕЛОДІЯ, ПАУЗА</li><li>Цифри: 0-9</li></ul>", "R": "<h3>S11a (R):</h3><ul><li>УВАГА, РОЗДІЛ, КІНЕЦЬ</li><li>Цифри: 0-9</li></ul>" }
         };
+
+        const speedSlider = document.getElementById('speedSlider');
+        speedSlider.oninput = () => document.getElementById('speedVal').innerText = speedSlider.value + "ms";
 
         function updateUI() {
             const lang = document.getElementById('langSelect').value;
-            const stationSelect = document.getElementById('stationSelect');
-            const station = stationSelect.value;
+            const station = document.getElementById('stationSelect').value;
             const t = translations[lang];
             
             document.getElementById('title').innerText = t.title;
@@ -106,101 +80,52 @@
             document.getElementById('btnStop').innerText = t.stop;
             document.getElementById('statusField').innerText = t.status;
             
-            stationSelect.options[0].text = t.g03Label;
-            stationSelect.options[1].text = t.e06Label;
-            stationSelect.options[2].text = t.e03Label;
-            stationSelect.options[3].text = t.s11aLabel;
+            const s = document.getElementById('stationSelect');
+            s.options[0].text = t.g03; s.options[1].text = t.e06; s.options[2].text = t.e03; s.options[3].text = t.s11a;
             
             document.getElementById('messageInput').value = defaults[lang][station];
             document.getElementById('helpField').innerHTML = helpTexts[lang][station];
         }
 
-        let isPlaying = false;
-        let currentAudio = null;
-        let queue = [];
-        let queueIndex = 0;
+        let isPlaying = false, queue = [], queueIndex = 0, currentAudio = null;
 
         function startTransmission() {
             if (isPlaying) stopTransmission();
             const text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
-            
-            // Zerlegung in saubere Einzelwörter (verhindert Ersetzungsfehler!)
             const rawTokens = text.split(/\s+/).filter(t => t !== "");
-            
-            // Sicheres Mapping pro Wort
-            const mappedTokens = rawTokens.map(token => {
-                if (["ATTENTION", "UWAGA", "УВАГА", "ACHTUNG"].includes(token)) return "ACHTUNG";
-                if (["SEPARATION", "SEPARACJA", "РОЗДІЛ", "PAUSE", "PAUZA", "ПАУЗА", "TRENNUNG"].includes(token)) return "TRENNUNG";
-                if (["END", "KONIEC", "КІНЕЦЬ", "ENDE"].includes(token)) return "ENDE";
-                if (["MELODY", "MELODIE", "MELODIA", "МЕЛОДІЯ", "ГОНГ", "GONG"].includes(token)) return "GONG";
-                return token;
+            let expandedQueue = [];
+
+            rawTokens.forEach(token => {
+                if (["ATTENTION", "UWAGA", "УВАГА", "ACHTUNG"].includes(token)) expandedQueue.push({type: 'word', val: 'ACHTUNG'});
+                else if (["SEPARATION", "SEPARACJA", "РОЗДІЛ", "PAUSE", "PAUZA", "ПАУЗА", "TRENNUNG"].includes(token)) expandedQueue.push({type: 'word', val: 'TRENNUNG'});
+                else if (["END", "KONIEC", "КІНЕЦЬ", "ENDE"].includes(token)) expandedQueue.push({type: 'word', val: 'ENDE'});
+                else if (["MELODY", "MELODIE", "MELODIA", "МЕЛОДІЯ", "ГОНГ", "GONG"].includes(token)) expandedQueue.push({type: 'word', val: 'GONG'});
+                else if (/^\d+$/.test(token)) {
+                    for (let char of token) expandedQueue.push({type: 'digit', val: char});
+                }
             });
-            
-            // Filterung je nach Station
-            queue = mappedTokens.filter(token => {
-                if (station === "E") return /^\d$/.test(token);
-                if (station === "R") return /^\d$/.test(token) || ["ACHTUNG", "TRENNUNG", "ENDE"].includes(token);
-                if (station === "EN") return /^\d$/.test(token) || ["GONG", "TRENNUNG"].includes(token);
-                return true; 
-            });
-            
-            if (queue.length === 0) return;
+
+            queue = expandedQueue;
             isPlaying = true;
             queueIndex = 0;
-            
-            const lang = document.getElementById('langSelect').value;
-            let runningText = "Transmission running...";
-            if (lang === "DE") runningText = "Sendung läuft...";
-            if (lang === "PL") runningText = "Transmisja trwa...";
-            if (lang === "UA") runningText = "Передача триває...";
-            document.getElementById('statusField').innerText = runningText;
-            
             playNext();
         }
 
         function playNext() {
-            if (!isPlaying || queueIndex >= queue.length) {
-                const lang = document.getElementById('langSelect').value;
-                document.getElementById('statusField').innerText = translations[lang].status;
-                isPlaying = false;
-                return;
-            }
-
+            if (!isPlaying || queueIndex >= queue.length) { isPlaying = false; return; }
             const station = document.getElementById('stationSelect').value;
-            let token = queue[queueIndex];
-            
-            // E03 nutzt intern die GONG und TRENNUNG Dateien
-            if (station === "EN") {
-                if (token === "GONG") token = "GONG"; 
-                if (token === "TRENNUNG") token = "TRENNUNG";
-            }
-
-            const fileName = station + "_" + token + ".mp3";
-
+            const item = queue[queueIndex];
+            const fileName = station + "_" + item.val + ".mp3";
             currentAudio = new Audio(fileName);
-            currentAudio.play().catch(e => {
-                document.getElementById('statusField').innerText = "Error: " + fileName + " missing!";
-                isPlaying = false;
-            });
-            
-            currentAudio.onended = () => { 
-                queueIndex++; 
-                setTimeout(playNext, 600); 
+            currentAudio.play().catch(() => {});
+            currentAudio.onended = () => {
+                queueIndex++;
+                setTimeout(playNext, (item.type === 'digit') ? parseInt(speedSlider.value) : 600);
             };
         }
 
-        function stopTransmission() {
-            isPlaying = false;
-            if (currentAudio) currentAudio.pause();
-            const lang = document.getElementById('langSelect').value;
-            let stoppedText = "Stopped.";
-            if (lang === "DE") stoppedText = "Gestoppt.";
-            if (lang === "PL") stoppedText = "Zatrzymano.";
-            if (lang === "UA") stoppedText = "Зупинено.";
-            document.getElementById('statusField').innerText = stoppedText;
-        }
-        
+        function stopTransmission() { isPlaying = false; if (currentAudio) currentAudio.pause(); }
         updateUI();
     </script>
 </body>
