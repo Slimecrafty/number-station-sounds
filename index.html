@@ -10,6 +10,8 @@
         select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; }
         .status { margin-top: 15px; font-size: 14px; color: #aa6666; }
         .controls { margin-bottom: 20px; }
+        .repo-link { margin-top: 30px; }
+        .repo-link a { color: #ff3333; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ff3333; }
     </style>
 </head>
 <body>
@@ -19,10 +21,11 @@
             <option value="DE">Deutsch</option>
             <option value="EN">English</option>
         </select>
+        
         <select id="stationSelect" onchange="updateUI()">
             <option value="DE">G03</option>
-            <option value="E">E06 (English Man)</option>
-            <option value="EN">E03 (Lincolnshire Poacher)</option>
+            <option value="E">E06</option>
+            <option value="EN">E03</option>
         </select>
     </div>
 
@@ -34,30 +37,68 @@
     <button id="btnStop" onclick="stopTransmission()">STOP</button>
     <div class="status" id="statusField">System ready.</div>
 
+    <div class="repo-link">
+        <a href="https://github.com/Slimecrafty/number-station-sounds" target="_blank">
+           GitHub Repository
+        </a>
+    </div>
+
     <script>
-        // Die Defaults jetzt sprach- und stationsabhängig
+        // Komplett geprüfte Defaults für beide Sprachen
         const defaults = {
-            "DE": { "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", "E": "5 8 2 9 0", "EN": "MELODIE 5 8 2 9 0 PAUSE" },
-            "EN": { "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", "E": "5 8 2 9 0", "EN": "MELODY 5 8 2 9 0 PAUSE" }
+            "DE": { 
+                "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", 
+                "E": "5 8 2 9 0", 
+                "EN": "MELODIE 5 8 2 9 0 PAUSE" 
+            },
+            "EN": { 
+                "DE": "GONG ATTENTION 5 8 2 9 0 SEPARATION", 
+                "E": "5 8 2 9 0", 
+                "EN": "MELODY 5 8 2 9 0 PAUSE" 
+            }
         };
 
+        // Übersetzungen für die gesamte Benutzeroberfläche
         const translations = {
-            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit." },
-            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready." }
+            "DE": { 
+                title: "RADIO TRANSMITTER", 
+                start: "SENDUNG STARTEN", 
+                stop: "STOPP", 
+                status: "System bereit.",
+                g03Label: "G03 (Deutsch)",
+                e06Label: "E06 (English Man)",
+                e03Label: "E03 (Lincolnshire Poacher)"
+            },
+            "EN": { 
+                title: "RADIO TRANSMITTER", 
+                start: "START TRANSMISSION", 
+                stop: "STOP", 
+                status: "System ready.",
+                g03Label: "G03 (German)",
+                e06Label: "E06 (English Man)",
+                e03Label: "E03 (Lincolnshire Poacher)"
+            }
         };
 
         function updateUI() {
             const lang = document.getElementById('langSelect').value;
-            const station = document.getElementById('stationSelect').value;
+            const stationSelect = document.getElementById('stationSelect');
+            const station = stationSelect.value;
             
-            // Text übersetzen
             const t = translations[lang];
+            
+            // UI Texte anpassen
             document.getElementById('title').innerText = t.title;
             document.getElementById('btnStart').innerText = t.start;
             document.getElementById('btnStop').innerText = t.stop;
             document.getElementById('statusField').innerText = t.status;
             
-            // Default Text je nach Sprache und Station setzen
+            // Dropdown-Optionen live übersetzen
+            stationSelect.options[0].text = t.g03Label;
+            stationSelect.options[1].text = t.e06Label;
+            stationSelect.options[2].text = t.e03Label;
+            
+            // Textbox-Inhalt anpassen
             document.getElementById('messageInput').value = defaults[lang][station];
         }
 
@@ -71,28 +112,37 @@
             let text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
             
-            // Mapping: Wir wandeln die Begriffe in die echten Dateinamen um
-            // Englische Begriffe werden auf die existierenden Dateien gemappt
+            // HINTERGRUND-MAPPING: Wandelt englische/deutsche Platzhalter in echte Dateinamen um
             if (station === "EN") {
-                text = text.replace(/MELODY/g, "GONG").replace(/MELODIE/g, "GONG");
+                text = text.replace(/MELODIE/g, "GONG").replace(/MELODY/g, "GONG");
                 text = text.replace(/PAUSE/g, "TRENNUNG");
+            }
+            if (station === "DE") {
+                text = text.replace(/ATTENTION/g, "ACHTUNG");
+                text = text.replace(/SEPARATION/g, "TRENNUNG");
             }
             
             const rawTokens = text.split(/\s+/).filter(t => t !== "");
+            
+            // Filterregeln anwenden
             queue = rawTokens.filter(token => {
-                if (station === "E") return /^\d$/.test(token);
+                if (station === "E") return /^\d$/.test(token); // E06 darf nur Zahlen
                 return true; 
             });
             
             if (queue.length === 0) return;
             isPlaying = true;
             queueIndex = 0;
+            
+            const lang = document.getElementById('langSelect').value;
+            document.getElementById('statusField').innerText = lang === "DE" ? "Sendung läuft..." : "Transmission running...";
             playNext();
         }
 
         function playNext() {
             if (!isPlaying || queueIndex >= queue.length) {
-                document.getElementById('statusField').innerText = translations[document.getElementById('langSelect').value].status;
+                const lang = document.getElementById('langSelect').value;
+                document.getElementById('statusField').innerText = translations[lang].status;
                 isPlaying = false;
                 return;
             }
@@ -103,18 +153,25 @@
 
             currentAudio = new Audio(fileName);
             currentAudio.play().catch(e => {
-                alert("File not found: " + fileName);
+                document.getElementById('statusField').innerText = "Error: " + fileName + " missing!";
                 isPlaying = false;
             });
-            currentAudio.onended = () => { queueIndex++; setTimeout(playNext, 600); };
+            
+            currentAudio.onended = () => { 
+                queueIndex++; 
+                setTimeout(playNext, 600); 
+            };
         }
 
         function stopTransmission() {
             isPlaying = false;
             if (currentAudio) currentAudio.pause();
+            const lang = document.getElementById('langSelect').value;
+            document.getElementById('statusField').innerText = lang === "DE" ? "Gestoppt." : "Stopped.";
         }
         
-        updateUI(); // Init beim Laden
+        // Initialisierung beim Laden
+        updateUI();
     </script>
 </body>
 </html>
