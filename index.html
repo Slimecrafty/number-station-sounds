@@ -2,46 +2,61 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Zahlensender Transmitter</title>
+    <title>Radio Transmitter</title>
     <style>
         body { font-family: 'Courier New', monospace; background-color: #0c0f0c; color: #ff3333; padding: 20px; text-align: center; }
         textarea { width: 90%; height: 120px; background-color: #120505; color: #ff3333; border: 1px solid #ff3333; font-size: 20px; padding: 10px; resize: vertical; }
         button { background-color: #221111; color: #ff3333; border: 1px solid #ff3333; padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 10px; }
         select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; }
         .status { margin-top: 15px; font-size: 14px; color: #aa6666; }
-        .repo-link { margin-top: 30px; }
-        .repo-link a { color: #ff3333; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ff3333; }
+        .controls { margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>RADIO TRANSMITTER</h1>
-    
-    <select id="stationSelect" onchange="updateDefaults()">
-        <option value="DE">G03 (Deutsch)</option>
-        <option value="E">E06 (Russian Lady)</option>
-        <option value="EN">E03 (Lincolnshire Poacher)</option>
-    </select>
-
-    <br><br>
-    <textarea id="messageInput">GONG ACHTUNG 5 8 2 9 0 TRENNUNG</textarea>
-    <br>
-    <button onclick="startTransmission()">SENDUNG STARTEN</button>
-    <button onclick="stopTransmission()">STOPP</button>
-    <div class="status" id="statusField">System bereit.</div>
-
-    <div class="repo-link">
-        <a href="https://github.com/Slimecrafty/number-station-sounds" target="_blank">
-           GitHub Repository
-        </a>
+    <div class="controls">
+        <select id="langSelect" onchange="updateUI()">
+            <option value="DE">Deutsch</option>
+            <option value="EN">English</option>
+        </select>
+        <select id="stationSelect" onchange="updateDefaults()">
+            <option value="DE">G03</option>
+            <option value="E">E06 (English Man)</option>
+            <option value="EN">E03 (Lincolnshire Poacher)</option>
+        </select>
     </div>
 
+    <h1 id="title">RADIO TRANSMITTER</h1>
+    
+    <textarea id="messageInput"></textarea>
+    <br>
+    <button id="btnStart" onclick="startTransmission()">START</button>
+    <button id="btnStop" onclick="stopTransmission()">STOP</button>
+    <div class="status" id="statusField">System ready.</div>
+
     <script>
+        const translations = {
+            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", 
+                    GONG: "GONG", ACHTUNG: "ACHTUNG", TRENNUNG: "TRENNUNG", PAUSE: "PAUSE", MELODY: "MELODY" },
+            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", 
+                    GONG: "GONG", ACHTUNG: "ACHTUNG", TRENNUNG: "TRENNUNG", PAUSE: "PAUSE", MELODY: "MELODY" }
+        };
+
         const defaults = {
             "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG",
             "E": "5 8 2 9 0",
-            "EN": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG"
+            "EN": "MELODY 5 8 2 9 0 PAUSE"
         };
+
+        function updateUI() {
+            const lang = document.getElementById('langSelect').value;
+            const t = translations[lang];
+            document.getElementById('title').innerText = t.title;
+            document.getElementById('btnStart').innerText = t.start;
+            document.getElementById('btnStop').innerText = t.stop;
+            document.getElementById('statusField').innerText = t.status;
+            updateDefaults();
+        }
 
         function updateDefaults() {
             const station = document.getElementById('stationSelect').value;
@@ -55,21 +70,19 @@
 
         function startTransmission() {
             if (isPlaying) stopTransmission();
-            
             const text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
-            const rawTokens = text.split(/\s+/).filter(t => t !== "");
             
-            queue = [];
-            rawTokens.forEach(token => {
-                if (station === "E") {
-                    if (/^\d$/.test(token)) queue.push(token);
-                } else if (station === "EN" || station === "DE") {
-                    // Beide erlauben Zahlen + GONG + ACHTUNG + TRENNUNG
-                    if (/^\d$/.test(token) || token === "GONG" || token === "ACHTUNG" || token === "TRENNUNG") {
-                        queue.push(token);
-                    }
-                }
+            // Mapping für die Poacher-Begriffe
+            let processedText = text;
+            if (station === "EN") {
+                processedText = processedText.replace(/MELODY/g, "GONG").replace(/PAUSE/g, "TRENNUNG");
+            }
+            
+            const rawTokens = processedText.split(/\s+/).filter(t => t !== "");
+            queue = rawTokens.filter(token => {
+                if (station === "E") return /^\d$/.test(token);
+                return true; 
             });
             
             if (queue.length === 0) return;
@@ -80,32 +93,29 @@
 
         function playNext() {
             if (!isPlaying || queueIndex >= queue.length) {
-                document.getElementById('statusField').innerText = "Sendung beendet.";
+                document.getElementById('statusField').innerText = translations[document.getElementById('langSelect').value].status;
                 isPlaying = false;
                 return;
             }
 
             const station = document.getElementById('stationSelect').value;
-            const token = queue[queueIndex];
+            let token = queue[queueIndex];
+            
             const fileName = station + "_" + token + ".mp3";
-
             currentAudio = new Audio(fileName);
             currentAudio.play().catch(e => {
-                document.getElementById('statusField').innerText = "Fehler: " + fileName + " fehlt!";
+                alert("File not found: " + fileName);
                 isPlaying = false;
             });
-
-            currentAudio.onended = () => {
-                queueIndex++;
-                setTimeout(playNext, 600);
-            };
+            currentAudio.onended = () => { queueIndex++; setTimeout(playNext, 600); };
         }
 
         function stopTransmission() {
             isPlaying = false;
             if (currentAudio) currentAudio.pause();
-            document.getElementById('statusField').innerText = "Gestoppt.";
         }
+        
+        updateUI(); // Init
     </script>
 </body>
 </html>
