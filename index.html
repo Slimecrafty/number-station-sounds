@@ -24,7 +24,7 @@
     </select>
 
     <br><br>
-    <textarea id="messageInput">GONG 5 8 2 9 0 TRENNUNG</textarea>
+    <textarea id="messageInput">GONG ACHTUNG 5 8 2 9 0 TRENNUNG</textarea>
     <br>
     <button onclick="startTransmission()">SENDUNG STARTEN</button>
     <button onclick="stopTransmission()">STOPP</button>
@@ -37,11 +37,10 @@
     </div>
 
     <script>
-        // Hier definieren wir, was bei welcher Station stehen soll
         const defaults = {
-            "DE": "GONG 5 8 2 9 0 TRENNUNG",
+            "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG",
             "E": "5 8 2 9 0",
-            "EN": "ACHTUNG 5 8 2 9 0 TRENNUNG"
+            "EN": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG"
         };
 
         function updateDefaults() {
@@ -65,10 +64,11 @@
             rawTokens.forEach(token => {
                 if (station === "E") {
                     if (/^\d$/.test(token)) queue.push(token);
-                } else if (station === "EN") {
-                    if (/^\d$/.test(token) || token === "TRENNUNG" || token === "ACHTUNG") queue.push(token);
-                } else {
-                    queue.push(token);
+                } else if (station === "EN" || station === "DE") {
+                    // Beide erlauben Zahlen + GONG + ACHTUNG + TRENNUNG
+                    if (/^\d$/.test(token) || token === "GONG" || token === "ACHTUNG" || token === "TRENNUNG") {
+                        queue.push(token);
+                    }
                 }
             });
             
