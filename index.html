@@ -17,10 +17,10 @@
 
     <h1>RADIO TRANSMITTER</h1>
     
-    <select id="stationSelect">
-        <option value="DE">G03 (Deutsch - Gong/Trennung)</option>
-        <option value="E">E06 (Russian Lady - Nur Zahlen)</option>
-        <option value="EN">E03 (Lincolnshire Poacher - Trennung/Achtung)</option>
+    <select id="stationSelect" onchange="updateDefaults()">
+        <option value="DE">G03 (Deutsch)</option>
+        <option value="E">E06 (Russian Lady)</option>
+        <option value="EN">E03 (Lincolnshire Poacher)</option>
     </select>
 
     <br><br>
@@ -32,11 +32,23 @@
 
     <div class="repo-link">
         <a href="https://github.com/Slimecrafty/number-station-sounds" target="_blank">
-           GitHub Repository: number-station-sounds
+           GitHub Repository
         </a>
     </div>
 
     <script>
+        // Hier definieren wir, was bei welcher Station stehen soll
+        const defaults = {
+            "DE": "GONG 5 8 2 9 0 TRENNUNG",
+            "E": "5 8 2 9 0",
+            "EN": "ACHTUNG 5 8 2 9 0 TRENNUNG"
+        };
+
+        function updateDefaults() {
+            const station = document.getElementById('stationSelect').value;
+            document.getElementById('messageInput').value = defaults[station];
+        }
+
         let isPlaying = false;
         let currentAudio = null;
         let queue = [];
@@ -75,8 +87,6 @@
 
             const station = document.getElementById('stationSelect').value;
             const token = queue[queueIndex];
-            
-            // Baut den Dateinamen wie z.B. DE_GONG.mp3 oder EN_TRENNUNG.mp3
             const fileName = station + "_" + token + ".mp3";
 
             currentAudio = new Audio(fileName);
