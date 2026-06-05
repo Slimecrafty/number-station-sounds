@@ -10,8 +10,13 @@
         select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; }
         .status { margin-top: 15px; font-size: 14px; color: #aa6666; }
         .controls { margin-bottom: 20px; }
-        .repo-link { margin-top: 30px; }
+        .repo-link { margin-top: 30px; margin-bottom: 15px; }
         .repo-link a { color: #ff3333; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ff3333; }
+        
+        /* Styling für die Parameter-Erklärung */
+        .help-box { margin-top: 25px; text-align: left; display: inline-block; width: 90%; background-color: #120505; border: 1px dashed #ff3333; padding: 15px; color: #aa6666; font-size: 14px; }
+        .help-box ul { padding-left: 20px; margin: 5px 0 0 0; }
+        .help-box h3 { margin: 0 0 10px 0; font-size: 16px; color: #ff3333; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -37,6 +42,8 @@
     <button id="btnStop" onclick="stopTransmission()">STOP</button>
     <div class="status" id="statusField">System ready.</div>
 
+    <div class="help-box" id="helpField"></div>
+
     <div class="repo-link">
         <a href="https://github.com/Slimecrafty/number-station-sounds" target="_blank">
            GitHub Repository
@@ -44,7 +51,7 @@
     </div>
 
     <script>
-        // Komplett geprüfte Defaults für beide Sprachen
+        // Defaults für das Eingabefeld
         const defaults = {
             "DE": { 
                 "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", 
@@ -58,25 +65,29 @@
             }
         };
 
-        // Übersetzungen für die gesamte Benutzeroberfläche
+        // UI Übersetzungen
         const translations = {
             "DE": { 
-                title: "RADIO TRANSMITTER", 
-                start: "SENDUNG STARTEN", 
-                stop: "STOPP", 
-                status: "System bereit.",
-                g03Label: "G03 (Deutsch)",
-                e06Label: "E06 (English Man)",
-                e03Label: "E03 (Lincolnshire Poacher)"
+                title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.",
+                g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)"
             },
             "EN": { 
-                title: "RADIO TRANSMITTER", 
-                start: "START TRANSMISSION", 
-                stop: "STOP", 
-                status: "System ready.",
-                g03Label: "G03 (German)",
-                e06Label: "E06 (English Man)",
-                e03Label: "E03 (Lincolnshire Poacher)"
+                title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.",
+                g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)"
+            }
+        };
+
+        // Dynamische Parameter-Erklärung für jede Station und jede Sprache
+        const helpTexts = {
+            "DE": {
+                "DE": "<h3>Parameter für G03 (DE):</h3><ul><li><b>GONG</b> - Spielt die Datei <code>DE_GONG.mp3</code></li><li><b>ACHTUNG</b> - Spielt die Datei <code>DE_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - Spielt die Datei <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt die jeweiligen Zahlen-Dateien (z.B. <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Parameter für E06 (E):</h3><ul><li><b>0-9</b> - Diese Station akzeptiert <u>nur reine Zahlen</u> (Spielt z.B. <code>E_5.mp3</code>). Alle Textbefehle werden ignoriert.</li></ul>",
+                "EN": "<h3>Parameter für E03 (EN):</h3><ul><li><b>MELODIE</b> - Nutzt im Hintergrund die Datei <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - Nutzt im Hintergrund die Datei <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt die jeweiligen Zahlen-Dateien (z.B. <code>EN_5.mp3</code>)</li></ul>"
+            },
+            "EN": {
+                "DE": "<h3>Parameters for G03 (DE):</h3><ul><li><b>GONG</b> - Plays the file <code>DE_GONG.mp3</code></li><li><b>ATTENTION</b> - Plays the file <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - Plays the file <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Plays the respective number files (e.g., <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Parameters for E06 (E):</h3><ul><li><b>0-9</b> - This station accepts <u>numbers only</u> (Plays e.g., <code>E_5.mp3</code>). Text parameters are stripped out.</li></ul>",
+                "EN": "<h3>Parameters for E03 (EN):</h3><ul><li><b>MELODY</b> - Uses the file <code>EN_GONG.mp3</code> behind the scenes</li><li><b>PAUSE</b> - Uses the file <code>EN_TRENNUNG.mp3</code> behind the scenes</li><li><b>0-9</b> - Plays the respective number files (e.g., <code>EN_5.mp3</code>)</li></ul>"
             }
         };
 
@@ -84,7 +95,6 @@
             const lang = document.getElementById('langSelect').value;
             const stationSelect = document.getElementById('stationSelect');
             const station = stationSelect.value;
-            
             const t = translations[lang];
             
             // UI Texte anpassen
@@ -98,8 +108,9 @@
             stationSelect.options[1].text = t.e06Label;
             stationSelect.options[2].text = t.e03Label;
             
-            // Textbox-Inhalt anpassen
+            // Textbox-Inhalt & Parameter-Erklärung anpassen
             document.getElementById('messageInput').value = defaults[lang][station];
+            document.getElementById('helpField').innerHTML = helpTexts[lang][station];
         }
 
         let isPlaying = false;
@@ -112,7 +123,7 @@
             let text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
             
-            // HINTERGRUND-MAPPING: Wandelt englische/deutsche Platzhalter in echte Dateinamen um
+            // HINTERGRUND-MAPPING FÜR ENGLISCHE UND DEUTSCHE INPUTS
             if (station === "EN") {
                 text = text.replace(/MELODIE/g, "GONG").replace(/MELODY/g, "GONG");
                 text = text.replace(/PAUSE/g, "TRENNUNG");
@@ -126,7 +137,7 @@
             
             // Filterregeln anwenden
             queue = rawTokens.filter(token => {
-                if (station === "E") return /^\d$/.test(token); // E06 darf nur Zahlen
+                if (station === "E") return /^\d$/.test(token); // E06 erlaubt strikt nur Zahlen
                 return true; 
             });
             
@@ -170,7 +181,7 @@
             document.getElementById('statusField').innerText = lang === "DE" ? "Gestoppt." : "Stopped.";
         }
         
-        // Initialisierung beim Laden
+        // Start-Initialisierung
         updateUI();
     </script>
 </body>
