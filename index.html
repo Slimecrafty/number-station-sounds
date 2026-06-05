@@ -1,1 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Zahlensender Transmitter</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #0c0f0c; color: #ff3333; padding: 20px; text-align: center; }
+        textarea { width: 90%; height: 120px; background-color: #120505; color: #ff3333; border: 1px solid #ff3333; font-size: 20px; padding: 10px; resize: vertical; }
+        button { background-color: #221111; color: #ff3333; border: 1px solid #ff3333; padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 10px; }
+        select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; }
+        .status { margin-top: 15px; font-size: 14px; color: #aa6666; }
+        .repo-link { margin-top: 30px; }
+        .repo-link a { color: #ff3333; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ff3333; }
+    </style>
+</head>
+<body>
 
+    <h1>RADIO TRANSMITTER</h1>
+    
+    <select id="stationSelect">
+        <option value="DE">G03 (Deutsch - Gong/Trennung)</option>
+        <option value="E">E06 (Russian Lady - Nur Zahlen)</option>
+        <option value="EN">E03 (Lincolnshire Poacher - Trennung/Achtung)</option>
+    </select>
+
+    <br><br>
+    <textarea id="messageInput">GONG 5 8 2 9 0 TRENNUNG</textarea>
+    <br>
+    <button onclick="startTransmission()">SENDUNG STARTEN</button>
+    <button onclick="stopTransmission()">STOPP</button>
+    <div class="status" id="statusField">System bereit.</div>
+
+    <div class="repo-link">
+        <a href="https://github.com/Slimecrafty/number-station-sounds" target="_blank">
+           GitHub Repository: number-station-sounds
+        </a>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let currentAudio = null;
+        let queue = [];
+        let queueIndex = 0;
+
+        function startTransmission() {
+            if (isPlaying) stopTransmission();
+            
+            const text = document.getElementById('messageInput').value.toUpperCase();
+            const station = document.getElementById('stationSelect').value;
+            const rawTokens = text.split(/\s+/).filter(t => t !== "");
+            
+            queue = [];
+            rawTokens.forEach(token => {
+                if (station === "E") {
+                    if (/^\d$/.test(token)) queue.push(token);
+                } else if (station === "EN") {
+                    if (/^\d$/.test(token) || token === "TRENNUNG" || token === "ACHTUNG") queue.push(token);
+                } else {
+                    queue.push(token);
+                }
+            });
+            
+            if (queue.length === 0) return;
+            isPlaying = true;
+            queueIndex = 0;
+            playNext();
+        }
+
+        function playNext() {
+            if (!isPlaying || queueIndex >= queue.length) {
+                document.getElementById('statusField').innerText = "Sendung beendet.";
+                isPlaying = false;
+                return;
+            }
+
+            const station = document.getElementById('stationSelect').value;
+            const token = queue[queueIndex];
+            
+            // Baut den Dateinamen wie z.B. DE_GONG.mp3 oder EN_TRENNUNG.mp3
+            const fileName = station + "_" + token + ".mp3";
+
+            currentAudio = new Audio(fileName);
+            currentAudio.play().catch(e => {
+                document.getElementById('statusField').innerText = "Fehler: " + fileName + " fehlt!";
+                isPlaying = false;
+            });
+
+            currentAudio.onended = () => {
+                queueIndex++;
+                setTimeout(playNext, 600);
+            };
+        }
+
+        function stopTransmission() {
+            isPlaying = false;
+            if (currentAudio) currentAudio.pause();
+            document.getElementById('statusField').innerText = "Gestoppt.";
+        }
+    </script>
+</body>
+</html>
