@@ -19,7 +19,7 @@
             <option value="DE">Deutsch</option>
             <option value="EN">English</option>
         </select>
-        <select id="stationSelect" onchange="updateDefaults()">
+        <select id="stationSelect" onchange="updateUI()">
             <option value="DE">G03</option>
             <option value="E">E06 (English Man)</option>
             <option value="EN">E03 (Lincolnshire Poacher)</option>
@@ -35,32 +35,30 @@
     <div class="status" id="statusField">System ready.</div>
 
     <script>
-        const translations = {
-            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", 
-                    GONG: "GONG", ACHTUNG: "ACHTUNG", TRENNUNG: "TRENNUNG", PAUSE: "PAUSE", MELODY: "MELODY" },
-            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", 
-                    GONG: "GONG", ACHTUNG: "ACHTUNG", TRENNUNG: "TRENNUNG", PAUSE: "PAUSE", MELODY: "MELODY" }
+        // Die Defaults jetzt sprach- und stationsabhängig
+        const defaults = {
+            "DE": { "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", "E": "5 8 2 9 0", "EN": "MELODIE 5 8 2 9 0 PAUSE" },
+            "EN": { "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", "E": "5 8 2 9 0", "EN": "MELODY 5 8 2 9 0 PAUSE" }
         };
 
-        const defaults = {
-            "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG",
-            "E": "5 8 2 9 0",
-            "EN": "MELODY 5 8 2 9 0 PAUSE"
+        const translations = {
+            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit." },
+            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready." }
         };
 
         function updateUI() {
             const lang = document.getElementById('langSelect').value;
+            const station = document.getElementById('stationSelect').value;
+            
+            // Text übersetzen
             const t = translations[lang];
             document.getElementById('title').innerText = t.title;
             document.getElementById('btnStart').innerText = t.start;
             document.getElementById('btnStop').innerText = t.stop;
             document.getElementById('statusField').innerText = t.status;
-            updateDefaults();
-        }
-
-        function updateDefaults() {
-            const station = document.getElementById('stationSelect').value;
-            document.getElementById('messageInput').value = defaults[station];
+            
+            // Default Text je nach Sprache und Station setzen
+            document.getElementById('messageInput').value = defaults[lang][station];
         }
 
         let isPlaying = false;
@@ -70,16 +68,17 @@
 
         function startTransmission() {
             if (isPlaying) stopTransmission();
-            const text = document.getElementById('messageInput').value.toUpperCase();
+            let text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
             
-            // Mapping für die Poacher-Begriffe
-            let processedText = text;
+            // Mapping: Wir wandeln die Begriffe in die echten Dateinamen um
+            // Englische Begriffe werden auf die existierenden Dateien gemappt
             if (station === "EN") {
-                processedText = processedText.replace(/MELODY/g, "GONG").replace(/PAUSE/g, "TRENNUNG");
+                text = text.replace(/MELODY/g, "GONG").replace(/MELODIE/g, "GONG");
+                text = text.replace(/PAUSE/g, "TRENNUNG");
             }
             
-            const rawTokens = processedText.split(/\s+/).filter(t => t !== "");
+            const rawTokens = text.split(/\s+/).filter(t => t !== "");
             queue = rawTokens.filter(token => {
                 if (station === "E") return /^\d$/.test(token);
                 return true; 
@@ -99,9 +98,9 @@
             }
 
             const station = document.getElementById('stationSelect').value;
-            let token = queue[queueIndex];
-            
+            const token = queue[queueIndex];
             const fileName = station + "_" + token + ".mp3";
+
             currentAudio = new Audio(fileName);
             currentAudio.play().catch(e => {
                 alert("File not found: " + fileName);
@@ -115,7 +114,7 @@
             if (currentAudio) currentAudio.pause();
         }
         
-        updateUI(); // Init
+        updateUI(); // Init beim Laden
     </script>
 </body>
 </html>
