@@ -24,10 +24,10 @@ The transmitter automatically handles the correct audio assets from this reposit
 
 | Station Profile | UI Language | Allowed Parameters / Text Inputs | Played `.mp3` File (Pre-loaded) |
 | :--- | :--- | :--- | :--- |
-| **G03** <br>*(German Language)* | **DE** <br> **EN** | `GONG` <br> `ACHTUNG` / `ATTENTION` <br> `TRENNUNG` / `SEPARATION` <br> `0-9` | `DE_GONG.mp3` <br> `DE_ACHTUNG.mp3` <br> `DE_TRENNUNG.mp3` <br> `DE_0.mp3` to `DE_9.mp3` |
+| **G03** <br>*(The Gong)* | **DE** <br> **EN** | `GONG` <br> `ACHTUNG` / `ATTENTION` <br> `TRENNUNG` / `SEPARATION` <br> `0-9` | `DE_GONG.mp3` <br> `DE_ACHTUNG.mp3` <br> `DE_TRENNUNG.mp3` <br> `DE_0.mp3` to `DE_9.mp3` |
 | **E06** <br>*(English Man)* | **DE / EN** | `0-9` *(Strictly numbers only. Text parameters are automatically stripped out).* | `E_0.mp3` to `E_9.mp3` |
 | **E03** <br>*(Lincolnshire Poacher)*| **DE** <br> **EN** | `MELODIE` <br> `MELODY` <br> `PAUSE` <br> `0-9` | `EN_GONG.mp3` <br> `EN_GONG.mp3` <br> `EN_TRENNUNG.mp3` <br> `EN_0.mp3` to `EN_9.mp3` |
-| **S11a** <br>*(Slavic Variant)* | **DE** <br> **EN** | `ACHTUNG` / `ATTENTION` <br> `TRENNUNG` / `SEPARATION` <br> `ENDE` / `END` <br> `0-9` | `R_ACHTUNG.mp3` <br> `R_TRENNUNG.mp3` <br> `R_ENDE.mp3` <br> `R_0.mp3` to `R_9.mp3` |
+| **S11a** <br>*(Cherta Station)* | **DE** <br> **EN** | `ACHTUNG` / `ATTENTION` <br> `TRENNUNG` / `SEPARATION` <br> `ENDE` / `END` <br> `0-9` | `R_ACHTUNG.mp3` <br> `R_TRENNUNG.mp3` <br> `R_ENDE.mp3` <br> `R_0.mp3` to `R_9.mp3` |
 
 ---
 
