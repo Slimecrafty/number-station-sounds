@@ -54,7 +54,6 @@
     </div>
 
     <script>
-        // Standard-Eingabemuster für alle 4 Sprachen
         const defaults = {
             "DE": { "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", "E": "5 8 2 9 0", "EN": "MELODIE 5 8 2 9 0 PAUSE", "R": "ACHTUNG 5 8 2 9 0 TRENNUNG ENDE" },
             "EN": { "DE": "GONG ATTENTION 5 8 2 9 0 SEPARATION", "E": "5 8 2 9 0", "EN": "MELODY 5 8 2 9 0 PAUSE", "R": "ATTENTION 5 8 2 9 0 SEPARATION END" },
@@ -62,7 +61,6 @@
             "UA": { "DE": "ГОНГ УВАГА 5 8 2 9 0 РОЗДІЛ", "E": "5 8 2 9 0", "EN": "МЕЛОДІЯ 5 8 2 9 0 ПАУЗА", "R": "УВАГА 5 8 2 9 0 РОЗДІЛ КІНЕЦЬ" }
         };
 
-        // UI Übersetzungen
         const translations = {
             "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)" },
             "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)" },
@@ -70,31 +68,30 @@
             "UA": { title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ ПЕРЕДАЧУ", stop: "СТОП", status: "Система готова.", g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)" }
         };
 
-        // Dynamische Parameter-Erklärung Box
         const helpTexts = {
             "DE": {
-                "DE": "<h3>Parameter für G03 (DE):</h3><ul><li><b>GONG</b> - Spielt <code>DE_GONG.mp3</code></li><li><b>ACHTUNG</b> - Spielt <code>DE_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - Spielt <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt Zahlen (z.B. <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parameter für E06 (E):</h3><ul><li><b>0-9</b> - Nur reine Zahlen erlaubt (z.B. <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Parameter für E03 (EN):</h3><ul><li><b>MELODIE</b> - Nutzt <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - Nutzt <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt Zahlen (z.B. <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Parameter für S11a (R):</h3><ul><li><b>ACHTUNG</b> - Spielt <code>R_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - Spielt <code>R_TRENNUNG.mp3</code></li><li><b>ENDE</b> - Spielt <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Spielt Zahlen (z.B. <code>R_5.mp3</code>)</li></ul>"
+                "DE": "<h3>Parameter für G03 (DE):</h3><ul><li><b>GONG</b> - <code>DE_GONG.mp3</code></li><li><b>ACHTUNG</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Zahlen (z.B. <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Parameter für E06 (E):</h3><ul><li><b>0-9</b> - Nur Zahlen erlaubt (z.B. <code>E_5.mp3</code>).</li></ul>",
+                "EN": "<h3>Parameter für E03 (EN):</h3><ul><li><b>MELODIE</b> - <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Zahlen (z.B. <code>EN_5.mp3</code>)</li></ul>",
+                "R": "<h3>Parameter für S11a (R):</h3><ul><li><b>ACHTUNG</b> - <code>R_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - <code>R_TRENNUNG.mp3</code></li><li><b>ENDE</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Zahlen (z.B. <code>R_5.mp3</code>)</li></ul>"
             },
             "EN": {
-                "DE": "<h3>Parameters for G03 (DE):</h3><ul><li><b>GONG</b> - Plays <code>DE_GONG.mp3</code></li><li><b>ATTENTION</b> - Plays <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - Plays <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Plays numbers (e.g., <code>DE_5.mp3</code>)</li></ul>",
+                "DE": "<h3>Parameters for G03 (DE):</h3><ul><li><b>GONG</b> - <code>DE_GONG.mp3</code></li><li><b>ATTENTION</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Numbers (e.g., <code>DE_5.mp3</code>)</li></ul>",
                 "E": "<h3>Parameters for E06 (E):</h3><ul><li><b>0-9</b> - Numbers only (Plays e.g., <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Parameters for E03 (EN):</h3><ul><li><b>MELODY</b> - Uses <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - Uses <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Plays numbers (e.g., <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Parameters for S11a (R):</h3><ul><li><b>ATTENTION</b> - Plays <code>R_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - Plays <code>R_TRENNUNG.mp3</code></li><li><b>END</b> - Plays <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Plays numbers (e.g., <code>R_5.mp3</code>)</li></ul>"
+                "EN": "<h3>Parameters for E03 (EN):</h3><ul><li><b>MELODY</b> - <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Numbers (e.g., <code>EN_5.mp3</code>)</li></ul>",
+                "R": "<h3>Parameters for S11a (R):</h3><ul><li><b>ATTENTION</b> - <code>R_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - <code>R_TRENNUNG.mp3</code></li><li><b>END</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Numbers (e.g., <code>R_5.mp3</code>)</li></ul>"
             },
             "PL": {
-                "DE": "<h3>Parametry dla G03 (DE):</h3><ul><li><b>GONG</b> - Odtwarza <code>DE_GONG.mp3</code></li><li><b>UWAGA</b> - Odtwarza <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARACJA</b> - Odtwarza <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Odtwarza cyfry (np. <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parametry dla E06 (E):</h3><ul><li><b>0-9</b> - Dozwolone są tylko cyfry (np. <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Parametry dla E03 (EN):</h3><ul><li><b>MELODIA</b> - Używa <code>EN_GONG.mp3</code></li><li><b>PAUZA</b> - Używa <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Odtwarza cyfry (np. <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Parametry dla S11a (R):</h3><ul><li><b>UWAGA</b> - Odtwarza <code>R_ACHTUNG.mp3</code></li><li><b>SEPARACJA</b> - Odtwarza <code>R_TRENNUNG.mp3</code></li><li><b>KONIEC</b> - Odtwarza <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Odtwarza cyfry (np. <code>R_5.mp3</code>)</li></ul>"
+                "DE": "<h3>Parametry dla G03 (DE):</h3><ul><li><b>GONG</b> - <code>DE_GONG.mp3</code></li><li><b>UWAGA</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARACJA</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Cyfry (np. <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Parametry dla E06 (E):</h3><ul><li><b>0-9</b> - Tylko cyfry (np. <code>E_5.mp3</code>).</li></ul>",
+                "EN": "<h3>Parametry dla E03 (EN):</h3><ul><li><b>MELODIA</b> - <code>EN_GONG.mp3</code></li><li><b>PAUZA</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Cyfry (np. <code>EN_5.mp3</code>)</li></ul>",
+                "R": "<h3>Parametry dla S11a (R):</h3><ul><li><b>UWAGA</b> - <code>R_ACHTUNG.mp3</code></li><li><b>SEPARACJA</b> - <code>R_TRENNUNG.mp3</code></li><li><b>KONIEC</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Cyfry (np. <code>R_5.mp3</code>)</li></ul>"
             },
             "UA": {
-                "DE": "<h3>Параметри для G03 (DE):</h3><ul><li><b>ГОНГ</b> - Відтворює <code>DE_GONG.mp3</code></li><li><b>УВАГА</b> - Відтворює <code>DE_ACHTUNG.mp3</code></li><li><b>РОЗДІЛ</b> - Відтворює <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Відтворює цифри (наприклад, <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Параметри для E06 (E):</h3><ul><li><b>0-9</b> - Дозволені тільки цифри (наприклад, <code>E_5.mp3</code>).</li></ul>",
-                "EN": "<h3>Параметри для E03 (EN):</h3><ul><li><b>МЕЛОДІЯ</b> - Використовує <code>EN_GONG.mp3</code></li><li><b>ПАУЗА</b> - Використовує <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Відтворює цифри (наприклад, <code>EN_5.mp3</code>)</li></ul>",
-                "R": "<h3>Параметри для S11a (R):</h3><ul><li><b>УВАГА</b> - Відтворює <code>R_ACHTUNG.mp3</code></li><li><b>РОЗДІЛ</b> - Відтворює <code>R_TRENNUNG.mp3</code></li><li><b>КІНЕЦЬ</b> - Відтворює <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Відтворює цифри (наприклад, <code>R_5.mp3</code>)</li></ul>"
+                "DE": "<h3>Параметри для G03 (DE):</h3><ul><li><b>ГОНГ</b> - <code>DE_GONG.mp3</code></li><li><b>УВАГА</b> - <code>DE_ACHTUNG.mp3</code></li><li><b>РОЗДІЛ</b> - <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Цифри (наприклад, <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Параметри для E06 (E):</h3><ul><li><b>0-9</b> - Тільки цифри (наприклад, <code>E_5.mp3</code>).</li></ul>",
+                "EN": "<h3>Параметри для E03 (EN):</h3><ul><li><b>МЕЛОДІЯ</b> - <code>EN_GONG.mp3</code></li><li><b>ПАУЗА</b> - <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Цифри (наприклад, <code>EN_5.mp3</code>)</li></ul>",
+                "R": "<h3>Параметри для S11a (R):</h3><ul><li><b>УВАГА</b> - <code>R_ACHTUNG.mp3</code></li><li><b>РОЗДІЛ</b> - <code>R_TRENNUNG.mp3</code></li><li><b>КІНЕЦЬ</b> - <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Цифри (наприклад, <code>R_5.mp3</code>)</li></ul>"
             }
         };
 
@@ -125,24 +122,26 @@
 
         function startTransmission() {
             if (isPlaying) stopTransmission();
-            let text = document.getElementById('messageInput').value.toUpperCase();
+            const text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
             
-            // INTELLIGENTES MULTI-LANGUAGE MAPPING SYSTEM
-            // Achtung-Mapping (EN, PL, UA -> DE-Stammcode)
-            text = text.replace(/ATTENTION/g, "ACHTUNG").replace(/UWAGA/g, "ACHTUNG").replace(/УВАГА/g, "ACHTUNG");
-            // Trennung & Pausen-Mapping
-            text = text.replace(/SEPARATION/g, "TRENNUNG").replace(/SEPARACJA/g, "TRENNUNG").replace(/РОЗДІЛ/g, "TRENNUNG").replace(/PAUSE/g, "TRENNUNG").replace(/PAUZA/g, "TRENNUNG").replace(/ПАУЗА/g, "TRENNUNG");
-            // Ende-Mapping
-            text = text.replace(/END/g, "ENDE").replace(/KONIEC/g, "ENDE").replace(/КІНЕЦЬ/g, "ENDE");
-            // Melodie & Gong-Mapping
-            text = text.replace(/MELODY/g, "GONG").replace(/MELODIE/g, "GONG").replace(/MELODIA/g, "GONG").replace(/МЕЛОДІЯ/g, "GONG").replace(/ГОНГ/g, "GONG");
-            
+            // Zerlegung in saubere Einzelwörter (verhindert Ersetzungsfehler!)
             const rawTokens = text.split(/\s+/).filter(t => t !== "");
             
-            queue = rawTokens.filter(token => {
+            // Sicheres Mapping pro Wort
+            const mappedTokens = rawTokens.map(token => {
+                if (["ATTENTION", "UWAGA", "УВАГА", "ACHTUNG"].includes(token)) return "ACHTUNG";
+                if (["SEPARATION", "SEPARACJA", "РОЗДІЛ", "PAUSE", "PAUZA", "ПАУЗА", "TRENNUNG"].includes(token)) return "TRENNUNG";
+                if (["END", "KONIEC", "КІНЕЦЬ", "ENDE"].includes(token)) return "ENDE";
+                if (["MELODY", "MELODIE", "MELODIA", "МЕЛОДІЯ", "ГОНГ", "GONG"].includes(token)) return "GONG";
+                return token;
+            });
+            
+            // Filterung je nach Station
+            queue = mappedTokens.filter(token => {
                 if (station === "E") return /^\d$/.test(token);
-                if (station === "R") return /^\d$/.test(token) || token === "TRENNUNG" || token === "ENDE" || token === "ACHTUNG";
+                if (station === "R") return /^\d$/.test(token) || ["ACHTUNG", "TRENNUNG", "ENDE"].includes(token);
+                if (station === "EN") return /^\d$/.test(token) || ["GONG", "TRENNUNG"].includes(token);
                 return true; 
             });
             
@@ -169,7 +168,14 @@
             }
 
             const station = document.getElementById('stationSelect').value;
-            const token = queue[queueIndex];
+            let token = queue[queueIndex];
+            
+            // E03 nutzt intern die GONG und TRENNUNG Dateien
+            if (station === "EN") {
+                if (token === "GONG") token = "GONG"; 
+                if (token === "TRENNUNG") token = "TRENNUNG";
+            }
+
             const fileName = station + "_" + token + ".mp3";
 
             currentAudio = new Audio(fileName);
