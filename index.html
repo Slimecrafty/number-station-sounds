@@ -31,6 +31,7 @@
             <option value="DE">G03</option>
             <option value="E">E06</option>
             <option value="EN">E03</option>
+            <option value="R">S11a</option>
         </select>
     </div>
 
@@ -51,17 +52,19 @@
     </div>
 
     <script>
-        // Defaults für das Eingabefeld
+        // Defaults für das Eingabefeld (S11a startet jetzt mit ACHTUNG / ATTENTION)
         const defaults = {
             "DE": { 
                 "DE": "GONG ACHTUNG 5 8 2 9 0 TRENNUNG", 
                 "E": "5 8 2 9 0", 
-                "EN": "MELODIE 5 8 2 9 0 PAUSE" 
+                "EN": "MELODIE 5 8 2 9 0 PAUSE",
+                "R": "ACHTUNG 5 8 2 9 0 TRENNUNG ENDE"
             },
             "EN": { 
                 "DE": "GONG ATTENTION 5 8 2 9 0 SEPARATION", 
                 "E": "5 8 2 9 0", 
-                "EN": "MELODY 5 8 2 9 0 PAUSE" 
+                "EN": "MELODY 5 8 2 9 0 PAUSE",
+                "R": "ATTENTION 5 8 2 9 0 SEPARATION END"
             }
         };
 
@@ -69,25 +72,27 @@
         const translations = {
             "DE": { 
                 title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.",
-                g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)"
+                g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)"
             },
             "EN": { 
                 title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.",
-                g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)"
+                g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)"
             }
         };
 
-        // Dynamische Parameter-Erklärung für jede Station und jede Sprache
+        // Parameter-Erklärung inklusive R_ACHTUNG
         const helpTexts = {
             "DE": {
-                "DE": "<h3>Parameter für G03 (DE):</h3><ul><li><b>GONG</b> - Spielt die Datei <code>DE_GONG.mp3</code></li><li><b>ACHTUNG</b> - Spielt die Datei <code>DE_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - Spielt die Datei <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt die jeweiligen Zahlen-Dateien (z.B. <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parameter für E06 (E):</h3><ul><li><b>0-9</b> - Diese Station akzeptiert <u>nur reine Zahlen</u> (Spielt z.B. <code>E_5.mp3</code>). Alle Textbefehle werden ignoriert.</li></ul>",
-                "EN": "<h3>Parameter für E03 (EN):</h3><ul><li><b>MELODIE</b> - Nutzt im Hintergrund die Datei <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - Nutzt im Hintergrund die Datei <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt die jeweiligen Zahlen-Dateien (z.B. <code>EN_5.mp3</code>)</li></ul>"
+                "DE": "<h3>Parameter für G03 (DE):</h3><ul><li><b>GONG</b> - Spielt <code>DE_GONG.mp3</code></li><li><b>ACHTUNG</b> - Spielt <code>DE_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - Spielt <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt die Zahlen (z.B. <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Parameter für E06 (E):</h3><ul><li><b>0-9</b> - Akzeptiert <u>nur reine Zahlen</u> (Spielt z.B. <code>E_5.mp3</code>).</li></ul>",
+                "EN": "<h3>Parameter für E03 (EN):</h3><ul><li><b>MELODIE</b> - Nutzt im Hintergrund <code>EN_GONG.mp3</code></li><li><b>PAUSE</b> - Nutzt im Hintergrund <code>EN_TRENNUNG.mp3</code></li><li><b>0-9</b> - Spielt die Zahlen (z.B. <code>EN_5.mp3</code>)</li></ul>",
+                "R": "<h3>Parameter für S11a (R):</h3><ul><li><b>ACHTUNG</b> - Spielt die Datei <code>R_ACHTUNG.mp3</code></li><li><b>TRENNUNG</b> - Spielt die Datei <code>R_TRENNUNG.mp3</code></li><li><b>ENDE</b> - Spielt die Datei <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Spielt die Zahlen-Dateien (z.B. <code>R_5.mp3</code>)</li></ul>"
             },
             "EN": {
-                "DE": "<h3>Parameters for G03 (DE):</h3><ul><li><b>GONG</b> - Plays the file <code>DE_GONG.mp3</code></li><li><b>ATTENTION</b> - Plays the file <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - Plays the file <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Plays the respective number files (e.g., <code>DE_5.mp3</code>)</li></ul>",
-                "E": "<h3>Parameters for E06 (E):</h3><ul><li><b>0-9</b> - This station accepts <u>numbers only</u> (Plays e.g., <code>E_5.mp3</code>). Text parameters are stripped out.</li></ul>",
-                "EN": "<h3>Parameters for E03 (EN):</h3><ul><li><b>MELODY</b> - Uses the file <code>EN_GONG.mp3</code> behind the scenes</li><li><b>PAUSE</b> - Uses the file <code>EN_TRENNUNG.mp3</code> behind the scenes</li><li><b>0-9</b> - Plays the respective number files (e.g., <code>EN_5.mp3</code>)</li></ul>"
+                "DE": "<h3>Parameters for G03 (DE):</h3><ul><li><b>GONG</b> - Plays <code>DE_GONG.mp3</code></li><li><b>ATTENTION</b> - Plays <code>DE_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - Plays <code>DE_TRENNUNG.mp3</code></li><li><b>0-9</b> - Plays the numbers (e.g., <code>DE_5.mp3</code>)</li></ul>",
+                "E": "<h3>Parameters for E06 (E):</h3><ul><li><b>0-9</b> - This station accepts <u>numbers only</u> (Plays e.g., <code>E_5.mp3</code>).</li></ul>",
+                "EN": "<h3>Parameters for E03 (EN):</h3><ul><li><b>MELODY</b> - Uses <code>EN_GONG.mp3</code> behind the scenes</li><li><b>PAUSE</b> - Uses <code>EN_TRENNUNG.mp3</code> behind the scenes</li><li><b>0-9</b> - Plays the numbers (e.g., <code>EN_5.mp3</code>)</li></ul>",
+                "R": "<h3>Parameters for S11a (R):</h3><ul><li><b>ATTENTION</b> - Plays the file <code>R_ACHTUNG.mp3</code></li><li><b>SEPARATION</b> - Plays the file <code>R_TRENNUNG.mp3</code></li><li><b>END</b> - Plays the file <code>R_ENDE.mp3</code></li><li><b>0-9</b> - Plays the numbers (e.g., <code>R_5.mp3</code>)</li></ul>"
             }
         };
 
@@ -97,18 +102,16 @@
             const station = stationSelect.value;
             const t = translations[lang];
             
-            // UI Texte anpassen
             document.getElementById('title').innerText = t.title;
             document.getElementById('btnStart').innerText = t.start;
             document.getElementById('btnStop').innerText = t.stop;
             document.getElementById('statusField').innerText = t.status;
             
-            // Dropdown-Optionen live übersetzen
             stationSelect.options[0].text = t.g03Label;
             stationSelect.options[1].text = t.e06Label;
             stationSelect.options[2].text = t.e03Label;
+            stationSelect.options[3].text = t.s11aLabel;
             
-            // Textbox-Inhalt & Parameter-Erklärung anpassen
             document.getElementById('messageInput').value = defaults[lang][station];
             document.getElementById('helpField').innerHTML = helpTexts[lang][station];
         }
@@ -123,7 +126,7 @@
             let text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
             
-            // HINTERGRUND-MAPPING FÜR ENGLISCHE UND DEUTSCHE INPUTS
+            // Konvertierung der englischen Befehle ins interne deutsche Format
             if (station === "EN") {
                 text = text.replace(/MELODIE/g, "GONG").replace(/MELODY/g, "GONG");
                 text = text.replace(/PAUSE/g, "TRENNUNG");
@@ -132,12 +135,17 @@
                 text = text.replace(/ATTENTION/g, "ACHTUNG");
                 text = text.replace(/SEPARATION/g, "TRENNUNG");
             }
+            if (station === "R") {
+                text = text.replace(/ATTENTION/g, "ACHTUNG");
+                text = text.replace(/SEPARATION/g, "TRENNUNG");
+                text = text.replace(/END/g, "ENDE");
+            }
             
             const rawTokens = text.split(/\s+/).filter(t => t !== "");
             
-            // Filterregeln anwenden
             queue = rawTokens.filter(token => {
-                if (station === "E") return /^\d$/.test(token); // E06 erlaubt strikt nur Zahlen
+                if (station === "E") return /^\d$/.test(token);
+                if (station === "R") return /^\d$/.test(token) || token === "TRENNUNG" || token === "ENDE" || token === "ACHTUNG";
                 return true; 
             });
             
@@ -181,7 +189,6 @@
             document.getElementById('statusField').innerText = lang === "DE" ? "Gestoppt." : "Stopped.";
         }
         
-        // Start-Initialisierung
         updateUI();
     </script>
 </body>
