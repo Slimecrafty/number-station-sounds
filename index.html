@@ -60,13 +60,13 @@
 
     <div class="control-row">
         <label id="speedLabel">Zahlengeschwindigkeit:</label>
-        <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed(); recalculateDuration();">
+        <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed()">
         <span id="speedValue">1.0x</span>
     </div>
 
     <div class="control-row">
         <label id="pauseLabel">Pause zwischen Elementen:</label>
-        <input type="range" id="pauseSlider" min="200" max="1500" step="50" value="600" oninput="updatePause(); recalculateDuration();">
+        <input type="range" id="pauseSlider" min="200" max="1500" step="50" value="600" oninput="updatePause()">
         <span id="pauseValue">600ms</span>
     </div>
 
@@ -97,9 +97,12 @@
     </div>
 
     <div class="stats" id="statsField">
-        <div class="stats-item">Dauer: <span id="durationDisplay">0:00</span></div>
-        <div class="stats-item">Aktuell: <span id="currentDisplay">-</span></div>
-        <div class="stats-item">Fortschritt: <span id="progressDisplay">0/0</span></div>
+        <div class="stats-item" id="durationLabel">Dauer:</div>
+        <div class="stats-item"><span id="durationDisplay">0:00</span></div>
+        <div class="stats-item" id="currentLabel">Aktuell:</div>
+        <div class="stats-item"><span id="currentDisplay">-</span></div>
+        <div class="stats-item" id="progressLabel">Fortschritt:</div>
+        <div class="stats-item"><span id="progressDisplay">0/0</span></div>
     </div>
 
     <div class="status" id="statusField">System ready.</div>
@@ -122,28 +125,96 @@
 
         const translations = {
             "DE": { 
-                title: "RADIO TRANSMITTER", start: "START", stop: "STOP", status: "System bereit.", 
-                speedLabel: "Zahlengeschwindigkeit:", pauseLabel: "Pause zwischen Elementen:", volumeLabel: "Lautstärke:",
-                loopLabel: "Loop aktivieren", random: "ZUFALLSZAHLEN", save: "SPEICHERN", load: "LADEN", export: "ALS MP3 EXPORTIEREN",
-                g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)"
+                title: "RADIO TRANSMITTER", 
+                start: "START", 
+                stop: "STOP", 
+                status: "System bereit.", 
+                speedLabel: "Zahlengeschwindigkeit:", 
+                pauseLabel: "Pause zwischen Elementen:", 
+                volumeLabel: "Lautstärke:",
+                durationLabel: "Dauer:",
+                currentLabel: "Aktuell:",
+                progressLabel: "Fortschritt:",
+                loopLabel: "Loop aktivieren", 
+                random: "ZUFALLSZAHLEN", 
+                save: "SPEICHERN", 
+                load: "LADEN", 
+                export: "ALS MP3 EXPORTIEREN",
+                g03Label: "G03 (Deutsch)", 
+                e06Label: "E06 (English Man)", 
+                e03Label: "E03 (Lincolnshire Poacher)", 
+                s11aLabel: "S11a (Slawisch)",
+                running: "Sendung läuft...",
+                stopped: "Gestoppt."
             },
             "EN": { 
-                title: "RADIO TRANSMITTER", start: "START", stop: "STOP", status: "System ready.", 
-                speedLabel: "Number speed:", pauseLabel: "Pause between elements:", volumeLabel: "Volume:",
-                loopLabel: "Enable loop", random: "RANDOM NUMBERS", save: "SAVE", load: "LOAD", export: "EXPORT AS MP3",
-                g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)"
+                title: "RADIO TRANSMITTER", 
+                start: "START", 
+                stop: "STOP", 
+                status: "System ready.", 
+                speedLabel: "Number speed:", 
+                pauseLabel: "Pause between elements:", 
+                volumeLabel: "Volume:",
+                durationLabel: "Duration:",
+                currentLabel: "Current:",
+                progressLabel: "Progress:",
+                loopLabel: "Enable loop", 
+                random: "RANDOM NUMBERS", 
+                save: "SAVE", 
+                load: "LOAD", 
+                export: "EXPORT AS MP3",
+                g03Label: "G03 (German)", 
+                e06Label: "E06 (English Man)", 
+                e03Label: "E03 (Lincolnshire Poacher)", 
+                s11aLabel: "S11a (Slavic)",
+                running: "Transmission running...",
+                stopped: "Stopped."
             },
             "PL": { 
-                title: "NADAJNIK RADIOWY", start: "START", stop: "STOP", status: "System gotowy.", 
-                speedLabel: "Prędkość liczb:", pauseLabel: "Pauza między elementami:", volumeLabel: "Głośność:",
-                loopLabel: "Włącz pętlę", random: "LICZBY LOSOWE", save: "ZAPISZ", load: "WCZYTAJ", export: "EKSPORTUJ AS MP3",
-                g03Label: "G03 (Niemiecki)", e06Label: "E06 (Angielski Głos)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Słowiański)"
+                title: "NADAJNIK RADIOWY", 
+                start: "START", 
+                stop: "STOP", 
+                status: "System gotowy.", 
+                speedLabel: "Prędkość liczb:", 
+                pauseLabel: "Pauza między elementami:", 
+                volumeLabel: "Głośność:",
+                durationLabel: "Czas trwania:",
+                currentLabel: "Bieżący:",
+                progressLabel: "Postęp:",
+                loopLabel: "Włącz pętlę", 
+                random: "LICZBY LOSOWE", 
+                save: "ZAPISZ", 
+                load: "WCZYTAJ", 
+                export: "EKSPORTUJ AS MP3",
+                g03Label: "G03 (Niemiecki)", 
+                e06Label: "E06 (Angielski Głos)", 
+                e03Label: "E03 (Lincolnshire Poacher)", 
+                s11aLabel: "S11a (Słowiański)",
+                running: "Transmisja trwa...",
+                stopped: "Zatrzymano."
             },
             "UA": { 
-                title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ", stop: "СТОП", status: "Система готова.", 
-                speedLabel: "Швидкість чисел:", pauseLabel: "Пауза між елементами:", volumeLabel: "Громкість:",
-                loopLabel: "Увімкнути цикл", random: "ВИПАДКОВІ ЧИСЛА", save: "ЗБЕРЕГТИ", load: "ЗАВАНТАЖИТИ", export: "ЕКСПОРТУВАТИ ЯК MP3",
-                g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)"
+                title: "РАДІОПЕРЕДАВАЧ", 
+                start: "ПОЧАТИ", 
+                stop: "СТОП", 
+                status: "Система готова.", 
+                speedLabel: "Швидкість чисел:", 
+                pauseLabel: "Пауза між елементами:", 
+                volumeLabel: "Громкість:",
+                durationLabel: "Тривалість:",
+                currentLabel: "Поточна:",
+                progressLabel: "Прогрес:",
+                loopLabel: "Увімкнути цикл", 
+                random: "ВИПАДКОВІ ЧИСЛА", 
+                save: "ЗБЕРЕГТИ", 
+                load: "ЗАВАНТАЖИТИ", 
+                export: "ЕКСПОРТУВАТИ ЯК MP3",
+                g03Label: "G03 (Німецька)", 
+                e06Label: "E06 (Англійська)", 
+                e03Label: "E03 (Lincolnshire Poacher)", 
+                s11aLabel: "S11a (Слов'янська)",
+                running: "Передача триває...",
+                stopped: "Зупинено."
             }
         };
 
@@ -189,6 +260,9 @@
             document.getElementById('speedLabel').innerText = t.speedLabel;
             document.getElementById('pauseLabel').innerText = t.pauseLabel;
             document.getElementById('volumeLabel').innerText = t.volumeLabel;
+            document.getElementById('durationLabel').innerText = t.durationLabel;
+            document.getElementById('currentLabel').innerText = t.currentLabel;
+            document.getElementById('progressLabel').innerText = t.progressLabel;
             document.getElementById('loopLabel').innerText = t.loopLabel;
             document.getElementById('btnRandom').innerText = t.random;
             document.getElementById('btnSave').innerText = t.save;
@@ -209,11 +283,13 @@
         function updateSpeed() {
             const val = parseFloat(document.getElementById('speedSlider').value).toFixed(1);
             document.getElementById('speedValue').innerText = val + 'x';
+            recalculateDuration();
         }
 
         function updatePause() {
             const val = parseInt(document.getElementById('pauseSlider').value);
             document.getElementById('pauseValue').innerText = val + 'ms';
+            recalculateDuration();
         }
 
         function updateVolume() {
@@ -377,11 +453,8 @@
             recordedAudios = [];
             
             const lang = document.getElementById('langSelect').value;
-            let runningText = "Transmission running...";
-            if (lang === "DE") runningText = "Sendung läuft...";
-            if (lang === "PL") runningText = "Transmisja trwa...";
-            if (lang === "UA") runningText = "Передача триває...";
-            document.getElementById('statusField').innerText = runningText;
+            const t = translations[lang];
+            document.getElementById('statusField').innerText = t.running;
             
             playNext();
         }
@@ -393,7 +466,8 @@
                     queueIndex = 0;
                     playNext();
                 } else {
-                    document.getElementById('statusField').innerText = translations[lang].status;
+                    const t = translations[lang];
+                    document.getElementById('statusField').innerText = t.status;
                     document.getElementById('progressFill').style.width = '0%';
                     isPlaying = false;
                     recalculateDuration();
@@ -438,11 +512,8 @@
             isPlaying = false;
             if (currentAudio) currentAudio.pause();
             const lang = document.getElementById('langSelect').value;
-            let stoppedText = "Stopped.";
-            if (lang === "DE") stoppedText = "Gestoppt.";
-            if (lang === "PL") stoppedText = "Zatrzymano.";
-            if (lang === "UA") stoppedText = "Зупинено.";
-            document.getElementById('statusField').innerText = stoppedText;
+            const t = translations[lang];
+            document.getElementById('statusField').innerText = t.stopped;
             document.getElementById('progressFill').style.width = '0%';
             recalculateDuration();
         }
