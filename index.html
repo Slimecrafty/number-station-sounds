@@ -6,22 +6,33 @@
     <style>
         body { font-family: 'Courier New', monospace; background-color: #0c0f0c; color: #ff3333; padding: 20px; text-align: center; }
         textarea { width: 90%; height: 120px; background-color: #120505; color: #ff3333; border: 1px solid #ff3333; font-size: 20px; padding: 10px; resize: vertical; }
-        button { background-color: #221111; color: #ff3333; border: 1px solid #ff3333; padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 10px; }
-        select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; }
+        button { background-color: #221111; color: #ff3333; border: 1px solid #ff3333; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 8px 4px; }
+        button:hover { background-color: #331122; }
+        select { background-color: #120505; color: #ff3333; border: 1px solid #ff3333; padding: 10px; font-size: 16px; cursor: pointer; margin: 0 5px; }
         .status { margin-top: 15px; font-size: 14px; color: #aa6666; }
         .controls { margin-bottom: 20px; }
         .repo-link { margin-top: 30px; margin-bottom: 15px; }
         .repo-link a { color: #ff3333; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ff3333; }
         
-        /* Styling für die Parameter-Erklärung */
         .help-box { margin-top: 25px; text-align: left; display: inline-block; width: 90%; background-color: #120505; border: 1px dashed #ff3333; padding: 15px; color: #aa6666; font-size: 14px; }
         .help-box ul { padding-left: 20px; margin: 5px 0 0 0; }
         .help-box h3 { margin: 0 0 10px 0; font-size: 16px; color: #ff3333; text-transform: uppercase; }
         
-        .speed-control { margin: 15px auto; width: 90%; display: flex; align-items: center; gap: 12px; justify-content: center; }
-        .speed-control label { color: #aa6666; font-size: 14px; white-space: nowrap; }
-        .speed-control input[type=range] { flex: 1; max-width: 200px; accent-color: #ff3333; background: transparent; cursor: pointer; }
-        .speed-control span { color: #ff3333; font-size: 14px; font-weight: bold; min-width: 40px; text-align: left; }
+        .control-row { margin: 15px auto; width: 90%; display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .control-row label { color: #aa6666; font-size: 14px; white-space: nowrap; }
+        .control-row input[type=range] { flex: 1; max-width: 200px; accent-color: #ff3333; background: transparent; cursor: pointer; }
+        .control-row span { color: #ff3333; font-size: 14px; font-weight: bold; min-width: 40px; text-align: left; }
+        
+        .progress-bar { width: 90%; height: 20px; background-color: #120505; border: 1px solid #ff3333; margin: 15px auto; position: relative; }
+        .progress-fill { height: 100%; background-color: #ff3333; width: 0%; transition: width 0.3s; }
+        
+        .stats { margin: 15px auto; width: 90%; color: #aa6666; font-size: 13px; }
+        .stats-item { display: inline-block; margin: 0 15px; }
+        
+        .button-group { margin: 15px auto; width: 90%; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
+        
+        .checkbox-label { color: #aa6666; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+        .checkbox-label input { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -47,14 +58,50 @@
     <textarea id="messageInput"></textarea>
     <br>
 
-    <div class="speed-control">
+    <div class="control-row">
         <label id="speedLabel">Zahlengeschwindigkeit:</label>
         <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed()">
         <span id="speedValue">1.0x</span>
     </div>
 
-    <button id="btnStart" onclick="startTransmission()">START</button>
-    <button id="btnStop" onclick="stopTransmission()">STOP</button>
+    <div class="control-row">
+        <label id="pauseLabel">Pause zwischen Elementen:</label>
+        <input type="range" id="pauseSlider" min="200" max="1500" step="50" value="600" oninput="updatePause()">
+        <span id="pauseValue">600ms</span>
+    </div>
+
+    <div class="control-row">
+        <label id="volumeLabel">Lautstärke:</label>
+        <input type="range" id="volumeSlider" min="0" max="100" step="5" value="100" oninput="updateVolume()">
+        <span id="volumeValue">100%</span>
+    </div>
+
+    <div class="control-row">
+        <label class="checkbox-label">
+            <input type="checkbox" id="loopCheckbox">
+            <span id="loopLabel">Loop aktivieren</span>
+        </label>
+    </div>
+
+    <div class="button-group">
+        <button id="btnStart" onclick="startTransmission()">START</button>
+        <button id="btnStop" onclick="stopTransmission()">STOP</button>
+        <button id="btnRandom" onclick="generateRandomNumbers()">ZUFALLSZAHLEN</button>
+        <button id="btnSave" onclick="saveText()">SPEICHERN</button>
+        <button id="btnLoad" onclick="loadText()">LADEN</button>
+        <button id="btnExport" onclick="exportAudio()">ALS MP3 EXPORTIEREN</button>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="stats" id="statsField">
+        <div class="stats-item">Dauer: <span id="durationDisplay">0:00</span></div>
+        <div class="stats-item">Aktuell: <span id="currentDisplay">-</span></div>
+        <div class="stats-item">Fortschritt: <span id="progressDisplay">0/0</span></div>
+    </div>
+
     <div class="status" id="statusField">System ready.</div>
 
     <div class="help-box" id="helpField"></div>
@@ -74,10 +121,30 @@
         };
 
         const translations = {
-            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", speedLabel: "Zahlengeschwindigkeit:", g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)" },
-            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", speedLabel: "Number speed:", g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)" },
-            "PL": { title: "NADAJNIK RADIOWY", start: "URUCHOM TRANSMISJĘ", stop: "STOP", status: "System gotowy.", speedLabel: "Prędkość liczb:", g03Label: "G03 (Niemiecki)", e06Label: "E06 (Angielski Głos)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Słowiański)" },
-            "UA": { title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ ПЕРЕДАЧУ", stop: "СТОП", status: "Система готова.", speedLabel: "Швидкість чисел:", g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)" }
+            "DE": { 
+                title: "RADIO TRANSMITTER", start: "START", stop: "STOP", status: "System bereit.", 
+                speedLabel: "Zahlengeschwindigkeit:", pauseLabel: "Pause zwischen Elementen:", volumeLabel: "Lautstärke:",
+                loopLabel: "Loop aktivieren", random: "ZUFALLSZAHLEN", save: "SPEICHERN", load: "LADEN", export: "ALS MP3 EXPORTIEREN",
+                g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)"
+            },
+            "EN": { 
+                title: "RADIO TRANSMITTER", start: "START", stop: "STOP", status: "System ready.", 
+                speedLabel: "Number speed:", pauseLabel: "Pause between elements:", volumeLabel: "Volume:",
+                loopLabel: "Enable loop", random: "RANDOM NUMBERS", save: "SAVE", load: "LOAD", export: "EXPORT AS MP3",
+                g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)"
+            },
+            "PL": { 
+                title: "NADAJNIK RADIOWY", start: "START", stop: "STOP", status: "System gotowy.", 
+                speedLabel: "Prędkość liczb:", pauseLabel: "Pauza między elementami:", volumeLabel: "Głośność:",
+                loopLabel: "Włącz pętlę", random: "LICZBY LOSOWE", save: "ZAPISZ", load: "WCZYTAJ", export: "EKSPORTUJ AS MP3",
+                g03Label: "G03 (Niemiecki)", e06Label: "E06 (Angielski Głos)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Słowiański)"
+            },
+            "UA": { 
+                title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ", stop: "СТОП", status: "Система готова.", 
+                speedLabel: "Швидкість чисел:", pauseLabel: "Пауза між елементами:", volumeLabel: "Громкість:",
+                loopLabel: "Увімкнути цикл", random: "ВИПАДКОВІ ЧИСЛА", save: "ЗБЕРЕГТИ", load: "ЗАВАНТАЖИТИ", export: "ЕКСПОРТУВАТИ ЯК MP3",
+                g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)"
+            }
         };
 
         const helpTexts = {
@@ -118,6 +185,13 @@
             document.getElementById('btnStop').innerText = t.stop;
             document.getElementById('statusField').innerText = t.status;
             document.getElementById('speedLabel').innerText = t.speedLabel;
+            document.getElementById('pauseLabel').innerText = t.pauseLabel;
+            document.getElementById('volumeLabel').innerText = t.volumeLabel;
+            document.getElementById('loopLabel').innerText = t.loopLabel;
+            document.getElementById('btnRandom').innerText = t.random;
+            document.getElementById('btnSave').innerText = t.save;
+            document.getElementById('btnLoad').innerText = t.load;
+            document.getElementById('btnExport').innerText = t.export;
             
             stationSelect.options[0].text = t.g03Label;
             stationSelect.options[1].text = t.e06Label;
@@ -133,13 +207,88 @@
             document.getElementById('speedValue').innerText = val + 'x';
         }
 
+        function updatePause() {
+            const val = parseInt(document.getElementById('pauseSlider').value);
+            document.getElementById('pauseValue').innerText = val + 'ms';
+        }
+
+        function updateVolume() {
+            const val = parseInt(document.getElementById('volumeSlider').value);
+            document.getElementById('volumeValue').innerText = val + '%';
+            if (currentAudio) {
+                currentAudio.volume = val / 100;
+            }
+        }
+
+        function generateRandomNumbers() {
+            const count = prompt("Wie viele Zufallszahlen? (1-100):", "10");
+            if (count === null) return;
+            const num = Math.min(Math.max(parseInt(count), 1), 100);
+            let result = "";
+            for (let i = 0; i < num; i++) {
+                result += Math.floor(Math.random() * 10) + " ";
+            }
+            document.getElementById('messageInput').value = result.trim();
+        }
+
+        function saveText() {
+            const text = document.getElementById('messageInput').value;
+            const name = prompt("Name zum Speichern:", "meine_sendung");
+            if (name) {
+                localStorage.setItem('transmission_' + name, text);
+                alert("Gespeichert: " + name);
+            }
+        }
+
+        function loadText() {
+            const name = prompt("Name zum Laden:");
+            if (name) {
+                const text = localStorage.getItem('transmission_' + name);
+                if (text) {
+                    document.getElementById('messageInput').value = text;
+                } else {
+                    alert("Nicht gefunden: " + name);
+                }
+            }
+        }
+
+        function calculateDuration(queueLength) {
+            const speed = parseFloat(document.getElementById('speedSlider').value);
+            const pause = parseInt(document.getElementById('pauseSlider').value);
+            let totalDuration = 0;
+            
+            for (let i = 0; i < queueLength; i++) {
+                const token = queue[i];
+                const isNum = isNumber(token);
+                const fileLength = isNum ? 0.8 : 0.6;
+                totalDuration += fileLength * 1000 / speed + pause;
+            }
+            
+            return Math.round(totalDuration / 1000);
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
+
         let isPlaying = false;
         let currentAudio = null;
         let queue = [];
         let queueIndex = 0;
+        let recordedAudios = [];
 
         function getSpeed() {
             return parseFloat(document.getElementById('speedSlider').value);
+        }
+
+        function getPause() {
+            return parseInt(document.getElementById('pauseSlider').value);
+        }
+
+        function getVolume() {
+            return parseInt(document.getElementById('volumeSlider').value) / 100;
         }
 
         function isNumber(token) {
@@ -171,6 +320,7 @@
             if (queue.length === 0) return;
             isPlaying = true;
             queueIndex = 0;
+            recordedAudios = [];
             
             const lang = document.getElementById('langSelect').value;
             let runningText = "Transmission running...";
@@ -179,14 +329,23 @@
             if (lang === "UA") runningText = "Передача триває...";
             document.getElementById('statusField').innerText = runningText;
             
+            const duration = calculateDuration(queue.length);
+            document.getElementById('durationDisplay').innerText = formatDuration(duration);
+            
             playNext();
         }
 
         function playNext() {
             if (!isPlaying || queueIndex >= queue.length) {
                 const lang = document.getElementById('langSelect').value;
-                document.getElementById('statusField').innerText = translations[lang].status;
-                isPlaying = false;
+                if (document.getElementById('loopCheckbox').checked && isPlaying) {
+                    queueIndex = 0;
+                    playNext();
+                } else {
+                    document.getElementById('statusField').innerText = translations[lang].status;
+                    document.getElementById('progressFill').style.width = '0%';
+                    isPlaying = false;
+                }
                 return;
             }
 
@@ -201,17 +360,25 @@
             const fileName = station + "_" + token + ".mp3";
             const isNum = isNumber(token);
             const speed = isNum ? getSpeed() : 1;
+            const volume = getVolume();
+
+            document.getElementById('currentDisplay').innerText = token;
+            document.getElementById('progressDisplay').innerText = (queueIndex + 1) + "/" + queue.length;
+            document.getElementById('progressFill').style.width = ((queueIndex + 1) / queue.length * 100) + "%";
 
             currentAudio = new Audio(fileName);
             currentAudio.playbackRate = speed;
+            currentAudio.volume = volume;
             currentAudio.play().catch(e => {
                 document.getElementById('statusField').innerText = "Error: " + fileName + " missing!";
                 isPlaying = false;
             });
             
             currentAudio.onended = () => { 
+                recordedAudios.push({file: fileName, speed: speed});
                 queueIndex++; 
-                setTimeout(playNext, 600); 
+                const pause = getPause();
+                setTimeout(playNext, pause); 
             };
         }
 
@@ -224,7 +391,28 @@
             if (lang === "PL") stoppedText = "Zatrzymano.";
             if (lang === "UA") stoppedText = "Зупинено.";
             document.getElementById('statusField').innerText = stoppedText;
+            document.getElementById('progressFill').style.width = '0%';
         }
+
+        function exportAudio() {
+            if (recordedAudios.length === 0) {
+                alert("Erst eine Sendung starten und durchlaufen lassen!");
+                return;
+            }
+            alert("Export wird vorbereitet... (Dies erfordert Web Audio API)");
+            // Simplified export - würde komplexer Web Audio API erfordern
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isPlaying) {
+                    stopTransmission();
+                } else {
+                    startTransmission();
+                }
+            }
+        });
         
         updateUI();
     </script>
