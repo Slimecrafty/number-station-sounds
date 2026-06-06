@@ -55,18 +55,18 @@
 
     <h1 id="title">RADIO TRANSMITTER</h1>
     
-    <textarea id="messageInput"></textarea>
+    <textarea id="messageInput" onchange="recalculateDuration()" onkeyup="recalculateDuration()"></textarea>
     <br>
 
     <div class="control-row">
         <label id="speedLabel">Zahlengeschwindigkeit:</label>
-        <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed()">
+        <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed(); recalculateDuration();">
         <span id="speedValue">1.0x</span>
     </div>
 
     <div class="control-row">
         <label id="pauseLabel">Pause zwischen Elementen:</label>
-        <input type="range" id="pauseSlider" min="200" max="1500" step="50" value="600" oninput="updatePause()">
+        <input type="range" id="pauseSlider" min="200" max="1500" step="50" value="600" oninput="updatePause(); recalculateDuration();">
         <span id="pauseValue">600ms</span>
     </div>
 
@@ -174,6 +174,8 @@
             }
         };
 
+        const audioDurationCache = {};
+
         function updateUI() {
             const lang = document.getElementById('langSelect').value;
             const stationSelect = document.getElementById('stationSelect');
@@ -200,6 +202,8 @@
             
             document.getElementById('messageInput').value = defaults[lang][station];
             document.getElementById('helpField').innerHTML = helpTexts[lang][station];
+            
+            recalculateDuration();
         }
 
         function updateSpeed() {
@@ -229,6 +233,7 @@
                 result += Math.floor(Math.random() * 10) + " ";
             }
             document.getElementById('messageInput').value = result.trim();
+            recalculateDuration();
         }
 
         function saveText() {
@@ -246,31 +251,80 @@
                 const text = localStorage.getItem('transmission_' + name);
                 if (text) {
                     document.getElementById('messageInput').value = text;
+                    recalculateDuration();
                 } else {
                     alert("Nicht gefunden: " + name);
                 }
             }
         }
 
-        function calculateDuration(queueLength) {
-            const speed = parseFloat(document.getElementById('speedSlider').value);
-            const pause = parseInt(document.getElementById('pauseSlider').value);
-            let totalDuration = 0;
-            
-            for (let i = 0; i < queueLength; i++) {
-                const token = queue[i];
-                const isNum = isNumber(token);
-                const fileLength = isNum ? 0.8 : 0.6;
-                totalDuration += fileLength * 1000 / speed + pause;
-            }
-            
-            return Math.round(totalDuration / 1000);
-        }
-
         function formatDuration(seconds) {
             const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
+            const secs = Math.round(seconds % 60);
             return mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
+
+        function getAudioDuration(fileName) {
+            return new Promise((resolve) => {
+                if (audioDurationCache[fileName] !== undefined) {
+                    resolve(audioDurationCache[fileName]);
+                    return;
+                }
+                
+                const audio = new Audio(fileName);
+                audio.onloadedmetadata = () => {
+                    audioDurationCache[fileName] = audio.duration;
+                    resolve(audio.duration);
+                };
+                audio.onerror = () => {
+                    audioDurationCache[fileName] = 0.8;
+                    resolve(0.8);
+                };
+            });
+        }
+
+        async function recalculateDuration() {
+            if (isPlaying) return;
+            
+            const text = document.getElementById('messageInput').value.toUpperCase();
+            const station = document.getElementById('stationSelect').value;
+            
+            const rawTokens = text.split(/\s+/).filter(t => t !== "");
+            
+            const mappedTokens = rawTokens.map(token => {
+                if (["ATTENTION", "UWAGA", "УВАГА", "ACHTUNG"].includes(token)) return "ACHTUNG";
+                if (["SEPARATION", "SEPARACJA", "РОЗДІЛ", "PAUSE", "PAUZA", "ПАУЗА", "TRENNUNG"].includes(token)) return "TRENNUNG";
+                if (["END", "KONIEC", "КІНЕЦЬ", "ENDE"].includes(token)) return "ENDE";
+                if (["MELODY", "MELODIE", "MELODIA", "МЕЛОДІЯ", "ГОНГ", "GONG"].includes(token)) return "GONG";
+                return token;
+            });
+            
+            const filteredQueue = mappedTokens.filter(token => {
+                if (station === "E") return /^\d$/.test(token);
+                if (station === "R") return /^\d$/.test(token) || ["ACHTUNG", "TRENNUNG", "ENDE"].includes(token);
+                if (station === "EN") return /^\d$/.test(token) || ["GONG", "TRENNUNG"].includes(token);
+                return true; 
+            });
+            
+            if (filteredQueue.length === 0) {
+                document.getElementById('durationDisplay').innerText = "0:00";
+                return;
+            }
+
+            let totalDuration = 0;
+            const speed = getSpeed();
+            const pause = getPause();
+
+            for (let token of filteredQueue) {
+                const isNum = isNumber(token);
+                const fileSpeed = isNum ? speed : 1;
+                const fileName = station + "_" + token + ".mp3";
+                
+                const duration = await getAudioDuration(fileName);
+                totalDuration += (duration / fileSpeed) + (pause / 1000);
+            }
+
+            document.getElementById('durationDisplay').innerText = formatDuration(totalDuration);
         }
 
         let isPlaying = false;
@@ -329,9 +383,6 @@
             if (lang === "UA") runningText = "Передача триває...";
             document.getElementById('statusField').innerText = runningText;
             
-            const duration = calculateDuration(queue.length);
-            document.getElementById('durationDisplay').innerText = formatDuration(duration);
-            
             playNext();
         }
 
@@ -345,6 +396,7 @@
                     document.getElementById('statusField').innerText = translations[lang].status;
                     document.getElementById('progressFill').style.width = '0%';
                     isPlaying = false;
+                    recalculateDuration();
                 }
                 return;
             }
@@ -392,6 +444,7 @@
             if (lang === "UA") stoppedText = "Зупинено.";
             document.getElementById('statusField').innerText = stoppedText;
             document.getElementById('progressFill').style.width = '0%';
+            recalculateDuration();
         }
 
         function exportAudio() {
@@ -400,7 +453,6 @@
                 return;
             }
             alert("Export wird vorbereitet... (Dies erfordert Web Audio API)");
-            // Simplified export - würde komplexer Web Audio API erfordern
         }
 
         document.addEventListener('keydown', function(e) {
