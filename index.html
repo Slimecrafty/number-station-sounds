@@ -17,6 +17,11 @@
         .help-box { margin-top: 25px; text-align: left; display: inline-block; width: 90%; background-color: #120505; border: 1px dashed #ff3333; padding: 15px; color: #aa6666; font-size: 14px; }
         .help-box ul { padding-left: 20px; margin: 5px 0 0 0; }
         .help-box h3 { margin: 0 0 10px 0; font-size: 16px; color: #ff3333; text-transform: uppercase; }
+        
+        .speed-control { margin: 15px auto; width: 90%; display: flex; align-items: center; gap: 12px; justify-content: center; }
+        .speed-control label { color: #aa6666; font-size: 14px; white-space: nowrap; }
+        .speed-control input[type=range] { flex: 1; max-width: 200px; accent-color: #ff3333; background: transparent; cursor: pointer; }
+        .speed-control span { color: #ff3333; font-size: 14px; font-weight: bold; min-width: 40px; text-align: left; }
     </style>
 </head>
 <body>
@@ -41,6 +46,13 @@
     
     <textarea id="messageInput"></textarea>
     <br>
+
+    <div class="speed-control">
+        <label id="speedLabel">Zahlengeschwindigkeit:</label>
+        <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed()">
+        <span id="speedValue">1.0x</span>
+    </div>
+
     <button id="btnStart" onclick="startTransmission()">START</button>
     <button id="btnStop" onclick="stopTransmission()">STOP</button>
     <div class="status" id="statusField">System ready.</div>
@@ -62,10 +74,10 @@
         };
 
         const translations = {
-            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)" },
-            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)" },
-            "PL": { title: "NADAJNIK RADIOWY", start: "URUCHOM TRANSMISJĘ", stop: "STOP", status: "System gotowy.", g03Label: "G03 (Niemiecki)", e06Label: "E06 (Angielski Głos)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Słowiański)" },
-            "UA": { title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ ПЕРЕДАЧУ", stop: "СТОП", status: "Система готова.", g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)" }
+            "DE": { title: "RADIO TRANSMITTER", start: "SENDUNG STARTEN", stop: "STOPP", status: "System bereit.", speedLabel: "Zahlengeschwindigkeit:", g03Label: "G03 (Deutsch)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slawisch)" },
+            "EN": { title: "RADIO TRANSMITTER", start: "START TRANSMISSION", stop: "STOP", status: "System ready.", speedLabel: "Number speed:", g03Label: "G03 (German)", e06Label: "E06 (English Man)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Slavic)" },
+            "PL": { title: "NADAJNIK RADIOWY", start: "URUCHOM TRANSMISJĘ", stop: "STOP", status: "System gotowy.", speedLabel: "Prędkość liczb:", g03Label: "G03 (Niemiecki)", e06Label: "E06 (Angielski Głos)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Słowiański)" },
+            "UA": { title: "РАДІОПЕРЕДАВАЧ", start: "ПОЧАТИ ПЕРЕДАЧУ", stop: "СТОП", status: "Система готова.", speedLabel: "Швидкість чисел:", g03Label: "G03 (Німецька)", e06Label: "E06 (Англійська)", e03Label: "E03 (Lincolnshire Poacher)", s11aLabel: "S11a (Слов'янська)" }
         };
 
         const helpTexts = {
@@ -105,6 +117,7 @@
             document.getElementById('btnStart').innerText = t.start;
             document.getElementById('btnStop').innerText = t.stop;
             document.getElementById('statusField').innerText = t.status;
+            document.getElementById('speedLabel').innerText = t.speedLabel;
             
             stationSelect.options[0].text = t.g03Label;
             stationSelect.options[1].text = t.e06Label;
@@ -115,20 +128,31 @@
             document.getElementById('helpField').innerHTML = helpTexts[lang][station];
         }
 
+        function updateSpeed() {
+            const val = parseFloat(document.getElementById('speedSlider').value).toFixed(1);
+            document.getElementById('speedValue').innerText = val + 'x';
+        }
+
         let isPlaying = false;
         let currentAudio = null;
         let queue = [];
         let queueIndex = 0;
+
+        function getSpeed() {
+            return parseFloat(document.getElementById('speedSlider').value);
+        }
+
+        function isNumber(token) {
+            return /^\d$/.test(token);
+        }
 
         function startTransmission() {
             if (isPlaying) stopTransmission();
             const text = document.getElementById('messageInput').value.toUpperCase();
             const station = document.getElementById('stationSelect').value;
             
-            // Zerlegung in saubere Einzelwörter (verhindert Ersetzungsfehler!)
             const rawTokens = text.split(/\s+/).filter(t => t !== "");
             
-            // Sicheres Mapping pro Wort
             const mappedTokens = rawTokens.map(token => {
                 if (["ATTENTION", "UWAGA", "УВАГА", "ACHTUNG"].includes(token)) return "ACHTUNG";
                 if (["SEPARATION", "SEPARACJA", "РОЗДІЛ", "PAUSE", "PAUZA", "ПАУЗА", "TRENNUNG"].includes(token)) return "TRENNUNG";
@@ -137,7 +161,6 @@
                 return token;
             });
             
-            // Filterung je nach Station
             queue = mappedTokens.filter(token => {
                 if (station === "E") return /^\d$/.test(token);
                 if (station === "R") return /^\d$/.test(token) || ["ACHTUNG", "TRENNUNG", "ENDE"].includes(token);
@@ -170,15 +193,17 @@
             const station = document.getElementById('stationSelect').value;
             let token = queue[queueIndex];
             
-            // E03 nutzt intern die GONG und TRENNUNG Dateien
             if (station === "EN") {
                 if (token === "GONG") token = "GONG"; 
                 if (token === "TRENNUNG") token = "TRENNUNG";
             }
 
             const fileName = station + "_" + token + ".mp3";
+            const isNum = isNumber(token);
+            const speed = isNum ? getSpeed() : 1;
 
             currentAudio = new Audio(fileName);
+            currentAudio.playbackRate = speed;
             currentAudio.play().catch(e => {
                 document.getElementById('statusField').innerText = "Error: " + fileName + " missing!";
                 isPlaying = false;
