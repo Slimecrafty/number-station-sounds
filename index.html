@@ -280,16 +280,16 @@
             recalculateDuration();
         }
 
-        function updateSpeed() {
+        async function updateSpeed() {
             const val = parseFloat(document.getElementById('speedSlider').value).toFixed(1);
             document.getElementById('speedValue').innerText = val + 'x';
-            recalculateDuration();
+            await recalculateDuration();
         }
 
-        function updatePause() {
+        async function updatePause() {
             const val = parseInt(document.getElementById('pauseSlider').value);
             document.getElementById('pauseValue').innerText = val + 'ms';
-            recalculateDuration();
+            await recalculateDuration();
         }
 
         function updateVolume() {
@@ -348,14 +348,38 @@
                 }
                 
                 const audio = new Audio(fileName);
-                audio.onloadedmetadata = () => {
-                    audioDurationCache[fileName] = audio.duration;
-                    resolve(audio.duration);
+                let resolved = false;
+                
+                const handleDuration = () => {
+                    if (!resolved && audio.duration && audio.duration > 0) {
+                        resolved = true;
+                        audioDurationCache[fileName] = audio.duration;
+                        resolve(audio.duration);
+                    }
                 };
+                
+                audio.addEventListener('loadedmetadata', handleDuration);
+                audio.addEventListener('canplay', handleDuration);
+                
+                const timeout = setTimeout(() => {
+                    if (!resolved) {
+                        resolved = true;
+                        audioDurationCache[fileName] = 0.8;
+                        resolve(0.8);
+                    }
+                }, 3000);
+                
                 audio.onerror = () => {
-                    audioDurationCache[fileName] = 0.8;
-                    resolve(0.8);
+                    if (!resolved) {
+                        resolved = true;
+                        clearTimeout(timeout);
+                        audioDurationCache[fileName] = 0.8;
+                        resolve(0.8);
+                    }
                 };
+                
+                audio.src = fileName;
+                audio.load();
             });
         }
 
@@ -541,3 +565,4 @@
     </script>
 </body>
 </html>
+
